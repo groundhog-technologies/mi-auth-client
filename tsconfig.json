@@ -1,0 +1,14 @@
+{
+  "include": [
+    "src/**/*",
+  ],
+  "compilerOptions": {
+    "noImplicitAny": true,
+    "target": "es5",
+    "moduleResolution": "Node"
+  },
+  "typedocOptions": {
+    "mode": "library",
+    "out": "docs",
+  }
+}
