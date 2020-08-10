@@ -7,29 +7,65 @@ interface UserRegisterInfo {
   email: string,
   password: string,
   role: string,
-  brand: ID,
+  access: string,
   advertiser?: [ID],
 }
 
-interface UserPermission {
+interface User {
   id: string,
   username: string,
   email: string,
   confirmed: boolean,
   role: string,
-  brand: ID,
+  access: string,
   advertiser?: [ID],
 }
 
 interface UserPermissionLogin {
   token: string,
-  userPermission: UserPermission
+  user: User
+}
+
+interface Role {
+  id: ID,
+  name: string,
+  nb_users: number
+}
+
+interface Brand {
+  id: ID,
+  name: string,
+  advertisers?: Advertiser[]
+}
+
+interface Advertiser {
+  id: ID,
+  name: string,
+  brand: ID
+  users: User[]
 }
 
 interface ClientTool {
-  createUser(profile: UserRegisterInfo): Promise<boolean>,
-  login(name: string, password: string): Promise<UserPermissionLogin>,
-  getMe(token: string): Promise<UserPermission>
+  // user operations
+  login?(name: string, password: string): Promise<UserPermissionLogin>,
+  getMe?(): Promise<User>
+  createUser?(profile: UserRegisterInfo): Promise<boolean>,
+  listUsers?(id?: ID[]): Promise<User[]>,
+  updateUser?(profile: User): Promise<User>,
+  deleteUser?(id: ID): Promise<boolean>,
+  // role operations
+  listRoles?(): Promise<Role[]>,
+  // brand operations
+  createBrand?(profile: Brand): Promise<Brand>,
+  listBrands?(id?: ID[]): Promise<Brand[]>,
+  updateBrand?(profile: Brand): Promise<Brand>,
+  deleteBrand?(id: ID): Promise<boolean>,
+  // advertiser operations
+  createAdvertiser?(profile: Advertiser): Promise<Advertiser>,
+  listAdvertisers?(id?: ID[]): Promise<Advertiser[]>,
+  updateAdvertiser?(profile: Advertiser): Promise<Advertiser>,
+  deleteAdvertiser?(id: ID): Promise<boolean>,
+
 }
 
 function strapiClientTool(url: string): ClientTool {
@@ -43,8 +79,8 @@ function strapiClientTool(url: string): ClientTool {
       const res = await axios.post(`${url}/auth/local/`, { name, password })
       return res.data
     },
-    getMe: async function (token: string): Promise<UserPermission> {
-      const res = await axios.post(`${url}/auth/local/`, { token })
+    getMe: async function (): Promise<User> {
+      const res = await axios.post(`${url}/users/me`, {})
       return res.data
     },
   }
@@ -54,18 +90,3 @@ function strapiClientTool(url: string): ClientTool {
 export default function createClientTool(url: string): ClientTool {
   return strapiClientTool(url)
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
