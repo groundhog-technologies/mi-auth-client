@@ -2,10 +2,15 @@
   "include": [
     "src/**/*",
   ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ],
   "compilerOptions": {
     "noImplicitAny": true,
     "target": "es5",
-    "moduleResolution": "Node"
+    "moduleResolution": "Node",
+    "declaration": true,
   },
   "typedocOptions": {
     "mode": "library",

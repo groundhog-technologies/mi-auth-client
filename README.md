@@ -1,7 +1,7 @@
 # mi-auth-client
-Use to MI product authorization and authentication
+Use to MI product authorization and authentication  
 
-
+Client Tool only supports [Strapi]("https://strapi.io/") by default for now
 ```
 npm install
 
@@ -13,22 +13,28 @@ npm run doc
 ```
 
 ### Example
-Performing initialization strapi client tool
+Performing initialization client tool
+- Typescript
+```+=typescript
+import createClientTool from 'mi-auth-client'
+const miAuth = createClientTool({ mock: true });
+```
+- ES5
 ```+=javascript
-const createClientTool = require('./dist/main').default
-const strapi = createClientTool({ mock: true });
+const createClientTool = require('mi-auth-client').default
+const miAuth = createClientTool({ mock: true });
 ```
 Performing a login request
 ```+=javascript
-let { jwt } = await strapi.login('email@ghtinc.com', 'password')
+let { jwt } = await miAuth.login('email@ghtinc.com', 'password')
 ```
 Performing CRUD user request
 ```+=javascript
-strapi.getMe(jwt).then(user => console.log(user));
+miAuth.getMe(jwt).then(user => console.log(user));
 
-strapi.deleteUser(jwt, id = 43).then(user => console.log(user));
+miAuth.deleteUser(jwt, id = 43).then(user => console.log(user));
 
-strapi.createUser(jwt, {
+miAuth.createUser(jwt, {
         username: 'test',
         email: 'test@ghtinc.com',
         password: 'test',
@@ -37,29 +43,29 @@ strapi.createUser(jwt, {
         advertisers: [7],
     }).then(user => console.log(user));
 
-strapi.updateUser(jwt, id = 44, { access: 'Both' }).then(user => console.log(user))
+miAuth.updateUser(jwt, id = 44, { access: 'Both' }).then(user => console.log(user))
 
-strapi.listUsers(jwt).then(user => console.log(user));
+miAuth.listUsers(jwt).then(user => console.log(user));
 ```
 
 Performing CRUD advertiser request
 ```+=javascript
-strapi.createAdvertiser(jwt, { name: 'test', brand: 4 }).then(advertiser => console.log(advertiser))
+miAuth.createAdvertiser(jwt, { name: 'test', brand: 4 }).then(advertiser => console.log(advertiser))
 
-strapi.updateAdvertiser(jwt, id = 8, { name: 'update' }).then(advertiser => console.log(advertiser))
+miAuth.updateAdvertiser(jwt, id = 8, { name: 'update' }).then(advertiser => console.log(advertiser))
 
-strapi.deleteAdvertiser(jwt, id = 7).then(advertiser => console.log(advertiser));
+miAuth.deleteAdvertiser(jwt, id = 7).then(advertiser => console.log(advertiser));
 
-strapi.listAdvertisers(jwt).then(advertisers => console.log(advertisers));
+miAuth.listAdvertisers(jwt).then(advertisers => console.log(advertisers));
 ```
 
 Performing CRUD brand request
 ```+=javascript
-strapi.createBrand(jwt, { name: 'test' }).then(brand => console.log(brand))
+miAuth.createBrand(jwt, { name: 'test' }).then(brand => console.log(brand))
 
-strapi.updateBrand(jwt, id = 5, { name: 'update' }).then(brand => console.log(brand))
+miAuth.updateBrand(jwt, id = 5, { name: 'update' }).then(brand => console.log(brand))
 
-strapi.deleteBrand(jwt, id = 4).then(brand => console.log(brand));
+miAuth.deleteBrand(jwt, id = 4).then(brand => console.log(brand));
 
-strapi.listBrands(jwt).then(brands => console.log(brands));
+miAuth.listBrands(jwt).then(brands => console.log(brands));
 ```
