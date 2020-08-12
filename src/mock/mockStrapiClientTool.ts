@@ -1,10 +1,13 @@
 import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token } from '../clientTool.interface'
 import { mockMe, mockJwt, mockUsers, mockRoles, mockBrands, mockAdvertisers } from './mockObjects'
 
-function isEmail(email: string) {
+const isEmail = function (email: string) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email.toLowerCase());
 }
+
+const assignObject = <T extends object>(target: T, arg: Partial<T>) => Object.assign(target, arg);
+const lastElement = <T extends object>(array: T[]) => array[array.length - 1];
 
 export default function mockStrapiClientTool(): ClientTool {
     return {
@@ -44,13 +47,13 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Type of access must be string.");
                 }
 
-                const id = mockUsers[-1].id ? mockUsers[-1].id : 0 + 1;
+                const id = lastElement(mockUsers).id + 1;
                 const roleInfo = mockRoles.find(e => e.id == role);
                 const advertiserInfo = mockAdvertisers.filter(e => advertisers.includes(e.id));
                 const newUser = { id, username, email, password, role: roleInfo, access, advertisers: advertiserInfo }
                 mockUsers.push(newUser);
 
-                resolve(mockUsers[-1])
+                resolve(lastElement(mockUsers))
             });
         },
         login: async function (name: string, password: string): Promise<UserPermissionLogin> {
@@ -138,9 +141,8 @@ export default function mockStrapiClientTool(): ClientTool {
 
                 const user = mockUsers.find(e => e.id == id);
                 const index = mockUsers.indexOf(user);
-                Object.keys(profile).forEach(key => {
-                    mockUsers[index][key] = profile[key]
-                })
+
+                mockUsers[index] = assignObject(mockUsers[index], profile)
 
                 resolve(mockUsers[index])
             });
@@ -186,10 +188,10 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid type of name");
                 }
 
-                profile.id = mockBrands[-1].id ? mockBrands[-1].id : 0 + 1;
+                profile.id = lastElement(mockBrands).id + 1;
                 mockBrands.push(profile);
 
-                resolve(mockBrands[-1])
+                resolve(lastElement(mockBrands))
             });
         },
         listBrands: async function (token: Token, id?: ID[]): Promise<Brand[]> {
@@ -211,9 +213,8 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
                 const brand = mockBrands.find(e => e.id == id);
                 const index = mockBrands.indexOf(brand);
-                Object.keys(profile).forEach(key => {
-                    mockBrands[index][key] = profile[key]
-                })
+                mockBrands[index] = assignObject(mockBrands[index], profile)
+
                 resolve(mockBrands[index])
             });
         },
@@ -254,9 +255,9 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid type of brand");
                 }
 
-                profile.id = mockAdvertisers[-1].id ? mockAdvertisers[-1].id : 0 + 1;
+                profile.id = lastElement(mockAdvertisers).id + 1;
                 mockAdvertisers.push(profile);
-                resolve(mockAdvertisers[-1])
+                resolve(lastElement(mockAdvertisers))
             });
         },
         listAdvertisers: async function (token: Token, id?: ID[], brands?: ID[]): Promise<Advertiser[]> {
@@ -282,10 +283,9 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
                 const advertiser = mockAdvertisers.find(e => e.id == id);
                 const index = mockAdvertisers.indexOf(advertiser);
-                Object.keys(profile).forEach(key => {
-                    mockAdvertisers[index][key] = profile[key]
-                })
-                resolve(mockAdvertisers[index])
+                mockAdvertisers[index] = assignObject(mockAdvertisers[index], profile);
+
+                resolve(mockAdvertisers[index]);
             });
         },
         deleteAdvertiser: async function (token: Token, id: ID): Promise<boolean> {
@@ -296,7 +296,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 try {
                     const advertiser = mockAdvertisers.find(e => e.id == id);
                     const index = mockAdvertisers.indexOf(advertiser);
-                    mockAdvertisers.splice(index, 1)
+                    mockAdvertisers.splice(index, 1);
                 }
                 catch (err) {
                     throw new Error("Invalid id.");
