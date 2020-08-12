@@ -1,6 +1,6 @@
 {
   "name": "mi-auth-client",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Use to MI product authorization and authentication",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
@@ -15,7 +15,8 @@
     "url": "git+https://github.com/groundhog-technologies/mi-auth-client.git"
   },
   "keywords": [
-    "Auth", "MI"
+    "Auth",
+    "MI"
   ],
   "author": "",
   "license": "ISC",
@@ -26,6 +27,7 @@
   "devDependencies": {
     "gulp": "^4.0.0",
     "gulp-cli": "^2.3.0",
+    "gulp-sourcemaps": "^2.6.5",
     "gulp-typescript": "^6.0.0-alpha.1",
     "typedoc": "^0.17.8",
     "typescript": "^3.9.7"

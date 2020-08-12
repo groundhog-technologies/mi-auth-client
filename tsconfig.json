@@ -10,7 +10,7 @@
     "noImplicitAny": true,
     "target": "es5",
     "moduleResolution": "Node",
-    "declaration": true
+    "declaration": true,
   },
   "typedocOptions": {
     "mode": "library",
