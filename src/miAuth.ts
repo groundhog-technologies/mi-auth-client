@@ -1,71 +1,28 @@
-import axios from 'axios'
-
-type ID = string
-
-interface UserRegisterInfo {
-  username: string,
-  email: string,
-  password: string,
-  role: string,
-  brand: ID,
-  advertiser?: [ID],
-}
-
-interface UserPermission {
-  id: string,
-  username: string,
-  email: string,
-  confirmed: boolean,
-  role: string,
-  brand: ID,
-  advertiser?: [ID],
-}
-
-interface UserPermissionLogin {
-  token: string,
-  userPermission: UserPermission
-}
-
-interface ClientTool {
-  createUser(profile: UserRegisterInfo): Promise<boolean>,
-  login(name: string, password: string): Promise<UserPermissionLogin>,
-  getMe(token: string): Promise<UserPermission>
-}
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams } from './clientTool.interface';
+import mockStrapiClientTool from './mock/mockStrapiClientTool';
+import axios from 'axios';
 
 function strapiClientTool(url: string): ClientTool {
-  return {
-    createUser: async function (profile: UserRegisterInfo): Promise<boolean> {
-      const res = await axios.post(`${url}/auth/local/register`, profile)
-      if (res.data.confirmed) return true
-      return false
-    },
-    login: async function (name: string, password: string): Promise<UserPermissionLogin> {
-      const res = await axios.post(`${url}/auth/local/`, { name, password })
-      return res.data
-    },
-    getMe: async function (token: string): Promise<UserPermission> {
-      const res = await axios.post(`${url}/auth/local/`, { token })
-      return res.data
-    },
-  }
+  return mockStrapiClientTool();
+  // createUser: async function (profile: UserRegisterInfo): Promise<User> {
+  //   const res = await axios.post(`${url}/auth/local/register`, profile)
+  //   if (res.data.confirmed) return res.data
+  //   return res.data
+  // },
+  // login: async function (name: string, password: string): Promise<UserPermissionLogin> {
+  //   const res = await axios.post(`${url}/auth/local/`, { name, password })
+  //   return res.data
+  // },
+  // getMe: async function (): Promise<User> {
+  //   const res = await axios.post(`${url}/users/me`, {})
+  //   return res.data
+  // },
+
 }
 
 
-export default function createClientTool(url: string): ClientTool {
-  return strapiClientTool(url)
+export default function createClientTool(setting: ClientToolParams): ClientTool {
+  const { mock = false, url } = setting;
+  if (mock) return mockStrapiClientTool();
+  return strapiClientTool(url);
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
