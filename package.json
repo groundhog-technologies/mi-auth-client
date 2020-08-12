@@ -3,9 +3,11 @@
   "version": "1.0.0",
   "description": "Use to MI product authorization and authentication",
   "main": "dist/main.js",
+  "types": "dist/main.d.ts",
   "scripts": {
     "build": "npx gulp",
     "doc": "npx typedoc",
+    "prepublish": "npx gulp",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

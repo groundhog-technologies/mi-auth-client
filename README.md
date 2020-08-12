@@ -1,7 +1,7 @@
 # mi-auth-client
-Use to MI product authorization and authentication
+Use to MI product authorization and authentication  
 
-
+Client Tool only supports Strapi by default
 ```
 npm install
 
