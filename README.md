@@ -38,7 +38,7 @@ miAuth.createUser(jwt, {
         username: 'test',
         email: 'test@ghtinc.com',
         password: 'test',
-        role: 1,
+        role: "User",
         access: 'Both',
         advertisers: [7],
     }).then(user => console.log(user));

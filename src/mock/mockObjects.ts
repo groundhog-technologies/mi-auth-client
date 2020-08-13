@@ -6,11 +6,9 @@ export const mockMe: User = {
     "id": 42,
     "username": "post",
     "email": "post@ghtinc.com",
-    "role": {
-        "id": 1,
-        "name": "user",
-    },
+    "role": "user",
     "access": "Both",
+    "brand": [{ "id": 4, "name": "robi" }],
     "advertisers": [
         {
             "id": 7,
@@ -25,11 +23,9 @@ export const mockUsers: User[] = [
         "id": 44,
         "username": "dspuser",
         "email": "dspuser@ghtinc.com",
-        "role": {
-            "id": 3,
-            "name": "user",
-        },
+        "role": "User",
         "access": "DSP",
+        "brand": [{ "id": 4, "name": "robi" }],
         "advertisers": [
             {
                 "id": 7,
@@ -42,11 +38,9 @@ export const mockUsers: User[] = [
         "id": 43,
         "username": "post",
         "email": "post@ghtinc.com",
-        "role": {
-            "id": 3,
-            "name": "user",
-        },
+        "role": "User",
         "access": "Both",
+        "brand": [{ "id": 4, "name": "robi" }],
         "advertisers": [
             {
                 "id": 7,
