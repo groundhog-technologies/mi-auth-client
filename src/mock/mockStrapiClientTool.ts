@@ -1,13 +1,6 @@
 import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token } from '../clientTool.interface'
-import { mockMe, mockJwt, mockUsers, mockRoles, mockBrands, mockAdvertisers } from './mockObjects'
-
-const isEmail = function (email: string) {
-    const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
-    return re.test(email.toLowerCase());
-}
-
-const assignObject = <T extends object>(target: T, arg: Partial<T>) => Object.assign(target, arg);
-const lastElement = <T extends object>(array: T[]) => array[array.length - 1];
+import { mockMe, mockJwt, mockUsers, mockBrands, mockAdvertisers } from './mockObjects'
+import { roleNames, isValidKey, isEmail, lastElement, assignObject } from '../utils'
 
 export default function mockStrapiClientTool(): ClientTool {
     return {
@@ -21,7 +14,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 if (!profile) {
                     throw new Error("Please provide your user profile.");
                 }
-                const { username, email, password, role, access, advertisers } = profile
+                let { username, email, password, role, access, advertisers } = profile
 
                 if (!username && !email && !password && !role && !access && !advertisers) {
                     throw new Error("Please provide username, email, password, role, access, advertiser in profile.");
@@ -39,8 +32,12 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Type of password must be string.");
                 }
 
-                if (typeof (role) != 'number') {
+                if (typeof (role) != 'string') {
                     throw new Error("Type of role must be id.");
+                }
+
+                if (!isValidKey(role, roleNames)) {
+                    throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
                 }
 
                 if (typeof (access) != 'string') {
@@ -48,9 +45,13 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
 
                 const id = lastElement(mockUsers).id + 1;
-                const roleInfo = mockRoles.find(e => e.id == role);
                 const advertiserInfo = mockAdvertisers.filter(e => advertisers.includes(e.id));
-                const newUser = { id, username, email, password, role: roleInfo, access, advertisers: advertiserInfo }
+                const brand: Brand[] = [];
+                advertiserInfo.forEach(e => {
+                    const b = mockBrands.find(c => c.id == e.brand)
+                    brand.push(b)
+                })
+                const newUser = { id, username, email, password, role, access, brand, advertisers: advertiserInfo }
                 mockUsers.push(newUser);
 
                 resolve(lastElement(mockUsers))
@@ -131,8 +132,12 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Type of password must be string.");
                 }
 
-                if (role && typeof (role) != 'number') {
-                    throw new Error("Type of role must be id.");
+                if (role && typeof (role) != 'string') {
+                    throw new Error("Type of role must be string.");
+                }
+
+                if (role && !isValidKey(role, roleNames)) {
+                    throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
                 }
 
                 if (access && typeof (access) != 'string') {
@@ -164,14 +169,14 @@ export default function mockStrapiClientTool(): ClientTool {
             });
         },
         // role operations
-        listRoles: async function (token: Token): Promise<Role[]> {
-            return new Promise<Role[]>((resolve) => {
-                if (token != 'strapi_mock_token') {
-                    throw new Error("Invalid token.");
-                }
-                resolve(mockRoles)
-            });
-        },
+        // listRoles: async function (token: Token): Promise<Role[]> {
+        //     return new Promise<Role[]>((resolve) => {
+        //         if (token != 'strapi_mock_token') {
+        //             throw new Error("Invalid token.");
+        //         }
+        //         resolve(mockRoles)
+        //     });
+        // },
         // brand operations
         createBrand: async function (token: Token, profile: Brand): Promise<Brand> {
             return new Promise<Brand>((resolve) => {

@@ -11,6 +11,7 @@
     "target": "es5",
     "moduleResolution": "Node",
     "declaration": true,
+    "suppressImplicitAnyIndexErrors": true
   },
   "typedocOptions": {
     "mode": "library",

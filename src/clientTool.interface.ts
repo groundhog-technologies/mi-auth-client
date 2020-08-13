@@ -14,9 +14,10 @@ export interface User {
     id?: ID,
     username: string,
     email: string,
-    role: Role,
+    role: string,
     access: string,
     password?: string,
+    brand: Brand[],
     advertisers?: Advertiser[],
 }
 
@@ -52,8 +53,6 @@ export interface ClientTool {
     listUsers(token: Token, id?: ID, brand?: ID, advertiser?: ID): Promise<User[]>,
     updateUser(token: Token, id: ID, profile: User): Promise<User>,
     deleteUser(token: Token, id: ID): Promise<boolean>,
-    // role operations
-    listRoles(token: Token): Promise<Role[]>,
     // brand operations
     createBrand(token: Token, profile: Brand): Promise<Brand>,
     listBrands(token: Token, id?: ID[]): Promise<Brand[]>,
