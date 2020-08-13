@@ -26,7 +26,7 @@ const miAuth = createClientTool({ mock: true });
 ```
 Performing a login request
 ```+=javascript
-let { jwt } = await miAuth.login('email@ghtinc.com', 'password')
+const { jwt } = await miAuth.login('email@ghtinc.com', 'password')
 ```
 Performing CRUD user request
 ```+=javascript
