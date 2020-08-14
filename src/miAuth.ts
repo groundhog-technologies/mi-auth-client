@@ -1,9 +1,10 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey } from './utils';
 import * as _ from 'lodash'
 import { identity } from 'lodash';
+import { mockAdvertisers } from './mock/mockObjects';
 
 
 function strapiClientTool(url: string): ClientTool {
@@ -48,7 +49,6 @@ function strapiClientTool(url: string): ClientTool {
         const data: any = profile;
         data.role = roles.find(e => e.name == roleNames[role]).id;
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        console.log(data)
         axios.post('/auth/local/register', data, config).then(async res => {
           const { email, username, role, access, advertisers = [] } = res.data
           const brandIds = new Set();
@@ -102,21 +102,39 @@ function strapiClientTool(url: string): ClientTool {
             advertisers.forEach((e: { brand: number }) => {
               brandIds.add(e.brand);
             });
-            const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
+            const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
             const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
             resolve(data)
           })
           .catch(err => console.log(err))
       });
     },
-    listUsers: async function (token: Token, id?: ID, brand?: ID, advertiser?: ID): Promise<User[]> {
+    listUsers: async function (token: Token, select: listParams): Promise<User[]> {
       return new Promise<User[]>((resolve) => {
         if (!token) {
           throw new Error("Please provide your token.");
         }
 
-        //list all users
-        const config: AxiosRequestConfig = { params: { id, brand, advertiser }, headers: { Authorization: `Bearer ${token}` } };
+        const { ids, brands, advertisers } = select
+        console.log(advertisers)
+        let params = new URLSearchParams();
+        if (ids) {
+          ids.forEach(e => {
+            params.append('id_in', e.toString())
+          })
+        }
+        if (brands) {
+          brands.forEach(e => {
+            params.append('advertisers.brand_in', e.toString())
+          })
+        }
+        if (advertisers) {
+          advertisers.forEach(e => {
+            params.append('advertisers.id_in', e.toString())
+          })
+        }
+
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get('/users', config).then(async res => {
           const data: User[] = []
           const allBrands = await this.listBrands(token)
@@ -166,7 +184,7 @@ function strapiClientTool(url: string): ClientTool {
           advertisers.forEach((e: { brand: number }) => {
             brandIds.add(e.brand);
           });
-          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
+          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
           const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
           resolve(data)
         });
@@ -210,15 +228,17 @@ function strapiClientTool(url: string): ClientTool {
         });
       });
     },
-    listBrands: async function (token: Token, id?: ID[]): Promise<Brand[]> {
+    listBrands: async function (token: Token, select: Pick<listParams, "ids"> = {}): Promise<Brand[]> {
       return new Promise<Brand[]>((resolve) => {
+        const { ids } = select
+
         let params = new URLSearchParams();
-        if (id) {
-          id.forEach(e => {
+        if (ids) {
+          ids.forEach(e => {
             params.append('id_in', e.toString())
           })
-
         }
+
         const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get<Brand[]>(`/brands`, config).then(res => {
           const data: Brand[] = []
@@ -277,9 +297,23 @@ function strapiClientTool(url: string): ClientTool {
         });
       });
     },
-    listAdvertisers: async function (token: Token, id?: ID[], brands?: ID[]): Promise<Advertiser[]> {
+    listAdvertisers: async function (token: Token, select: Pick<listParams, "ids" | "brands">): Promise<Advertiser[]> {
       return new Promise<Advertiser[]>((resolve) => {
-        const config: AxiosRequestConfig = { params: { id, brands }, headers: { Authorization: `Bearer ${token}` } };
+
+        const { ids, brands } = select
+
+        let params = new URLSearchParams();
+        if (ids) {
+          ids.forEach(e => {
+            params.append('id_in', e.toString())
+          })
+        }
+        if (brands) {
+          brands.forEach(e => {
+            params.append('brand_in', e.toString())
+          })
+        }
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get('advertisers', config).then(res => {
           const data: Advertiser[] = []
           res.data.forEach((e: { id: any; name: any; brand: { id: any; }; users: any; }) => {

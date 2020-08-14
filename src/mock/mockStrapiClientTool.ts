@@ -1,4 +1,4 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token, updateBrand, updateAdvertiser } from '../clientTool.interface'
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token, updateBrand, updateAdvertiser, listParams } from '../clientTool.interface'
 import { mockMe, mockJwt, mockUsers, mockBrands, mockAdvertisers, mockRoles } from './mockObjects'
 import { roleNames, isValidKey, isEmail, lastElement, assignObject } from '../utils'
 
@@ -86,7 +86,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve(mockMe)
             });
         },
-        listUsers: async function (token: Token, id?: ID, brand?: ID, advertiser?: ID): Promise<User[]> {
+        listUsers: async function (token: Token, select: listParams): Promise<User[]> {
             return new Promise<User[]>((resolve) => {
                 if (!token) {
                     throw new Error("Please provide your token.");
@@ -95,17 +95,19 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid token.");
                 }
 
-                if (id) {
-                    const users = mockUsers.filter(e => e.id == id)
+                const { ids, brands, advertisers } = select;
+
+                if (ids) {
+                    const users = mockUsers.filter(e => ids.includes(e.id))
                     resolve(users)
                 }
 
-                if (brand) {
-                    const users = mockUsers.filter(e => e.advertisers.find(a => a.brand == id))
+                if (brands) {
+                    const users = mockUsers.filter(e => e.advertisers.find(a => brands.includes(a.brand)))
                     resolve(users)
                 }
-                if (advertiser) {
-                    const users = mockUsers.filter(e => e.advertisers.find(a => a.id == id))
+                if (advertisers) {
+                    const users = mockUsers.filter(e => e.advertisers.find(a => advertisers.includes(a.id)))
                     resolve(users)
                 }
                 //list all users
@@ -200,13 +202,15 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve(lastElement(mockBrands))
             });
         },
-        listBrands: async function (token: Token, id?: ID[]): Promise<Brand[]> {
+        listBrands: async function (token: Token, select: Pick<listParams, "ids">): Promise<Brand[]> {
             return new Promise<Brand[]>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
-                if (id) {
-                    const brand = mockBrands.filter(e => id.includes(e.id))
+
+                const { ids } = select
+                if (ids) {
+                    const brand = mockBrands.filter(e => ids.includes(e.id))
                     resolve(brand)
                 }
                 resolve(mockBrands)
@@ -267,13 +271,16 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve(lastElement(mockAdvertisers))
             });
         },
-        listAdvertisers: async function (token: Token, id?: ID[], brands?: ID[]): Promise<Advertiser[]> {
+        listAdvertisers: async function (token: Token, select: Pick<listParams, "brands" | "ids">): Promise<Advertiser[]> {
             return new Promise<Advertiser[]>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
-                if (id) {
-                    const advertiser = mockAdvertisers.filter(e => id.includes(e.id))
+
+                const { ids, brands } = select
+
+                if (ids) {
+                    const advertiser = mockAdvertisers.filter(e => ids.includes(e.id))
                     resolve(advertiser)
                 }
                 if (brands) {

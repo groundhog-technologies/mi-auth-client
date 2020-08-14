@@ -45,27 +45,27 @@ miAuth.createUser(jwt, {
 
 miAuth.updateUser(jwt, id = 44, { access: 'Both' }).then(user => console.log(user))
 
-miAuth.listUsers(jwt).then(user => console.log(user));
+miAuth.listUsers(jwt, {ids:[], brands:[], advertisers:[]}).then(user => console.log(user));
 ```
 
 Performing CRUD advertiser request
 ```+=javascript
-miAuth.createAdvertiser(jwt, { name: 'test', brand: 4 }).then(advertiser => console.log(advertiser))
+miAuth.createAdvertiser(jwt, { name: 'test', brand: 4, users:[1, 2] }).then(advertiser => console.log(advertiser))
 
 miAuth.updateAdvertiser(jwt, id = 8, { name: 'update' }).then(advertiser => console.log(advertiser))
 
 miAuth.deleteAdvertiser(jwt, id = 7).then(advertiser => console.log(advertiser));
 
-miAuth.listAdvertisers(jwt).then(advertisers => console.log(advertisers));
+miAuth.listAdvertisers(jwt, {ids:[7], brands:[5]).then(advertisers => console.log(advertisers));
 ```
 
 Performing CRUD brand request
 ```+=javascript
-miAuth.createBrand(jwt, { name: 'test' }).then(brand => console.log(brand))
+miAuth.createBrand(jwt, { name: 'test', advertisers: [10] }).then(brand => console.log(brand))
 
 miAuth.updateBrand(jwt, id = 5, { name: 'update' }).then(brand => console.log(brand))
 
 miAuth.deleteBrand(jwt, id = 4).then(brand => console.log(brand));
 
-miAuth.listBrands(jwt).then(brands => console.log(brands));
+miAuth.listBrands(jwt,{ids:[5]}).then(brands => console.log(brands));
 ```
