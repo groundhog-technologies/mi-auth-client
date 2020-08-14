@@ -1,3 +1,4 @@
+import * as _ from 'lodash';
 export const isEmail = function (email: string) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(email.toLowerCase());
@@ -19,4 +20,3 @@ export const isValidKey = <T extends object>(key: string, object: T) => {
         return true
     }
 }
-

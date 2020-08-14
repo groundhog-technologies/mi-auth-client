@@ -1,19 +1,19 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
-import { mockUsers, mockBrands, mockAdvertisers, mockRoles } from './mock/mockObjects';
-import { assignObject, isEmail } from './utils';
+import { assignObject, isEmail, roleNames, isValidKey } from './utils';
+import * as _ from 'lodash'
+import { identity } from 'lodash';
+
 
 function strapiClientTool(url: string): ClientTool {
+
+  axios.defaults.baseURL = url;
 
   return {
     // user operations
     createUser: async function (token: Token, profile: UserRegisterInfo): Promise<User> {
-      return new Promise<User>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
+      return new Promise<User>(async (resolve) => {
         if (!profile) {
           throw new Error("Please provide your user profile.");
         }
@@ -35,7 +35,7 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of password must be string.");
         }
 
-        if (typeof (role) != 'string') {
+        if (!isValidKey(role, roleNames)) {
           throw new Error("Type of role must be string.");
         }
 
@@ -43,11 +43,25 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of access must be string.");
         }
 
-        const request: AxiosRequestConfig = { url: url + '/auth/local/register', method: 'post', data: profile };
-        axios(request).then(user => {
-          console.log(user)
+        const roles: Role[] = await this.listRoles(token);
+
+        const data: any = profile;
+        data.role = roles.find(e => e.name == roleNames[role]).id;
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        console.log(data)
+        axios.post('/auth/local/register', data, config).then(async res => {
+          const { email, username, role, access, advertisers = [] } = res.data
+          const brandIds = new Set();
+          advertisers.forEach((e: { brand: number }) => {
+            brandIds.add(e.brand);
+          });
+          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
+          const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+          resolve(data)
+        }).catch(err => {
+          if (err.response)
+            console.log(err.response.data.data[0])
         })
-        resolve(mockUsers[0])
       });
     },
     login: async function (name: string, password: string): Promise<UserPermissionLogin> {
@@ -68,13 +82,7 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of password must be string.");
         }
 
-        const request: AxiosRequestConfig = {
-          url: url + '/auth/local', method: 'post', data: {
-            identifier: name,
-            password
-          }
-        }
-        axios.request<UserPermissionLogin>(request)
+        axios.post<UserPermissionLogin>('/auth/local', { identifier: name, password })
           .then(res => {
             resolve(res.data)
           })
@@ -83,16 +91,20 @@ function strapiClientTool(url: string): ClientTool {
     },
     getMe: async function (token: Token): Promise<User> {
       return new Promise<User>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
 
-        const request: AxiosRequestConfig = {
-          url: url + '/users/me', method: 'get', headers: { Authorizaiton: token }
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
         }
-        axios.request<User>(request)
-          .then(res => {
-            resolve(res.data)
+        axios.get('/users/me', config)
+          .then(async res => {
+            const { email, username, role, access, advertisers } = res.data
+            const brandIds = new Set();
+            advertisers.forEach((e: { brand: number }) => {
+              brandIds.add(e.brand);
+            });
+            const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
+            const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+            resolve(data)
           })
           .catch(err => console.log(err))
       });
@@ -102,33 +114,29 @@ function strapiClientTool(url: string): ClientTool {
         if (!token) {
           throw new Error("Please provide your token.");
         }
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
 
-        if (id) {
-          const users = mockUsers.filter(e => e.id == id)
-          resolve(users)
-        }
-
-        if (brand) {
-          const users = mockUsers.filter(e => e.advertisers.find(a => a.brand == id))
-          resolve(users)
-        }
-        if (advertiser) {
-          const users = mockUsers.filter(e => e.advertisers.find(a => a.id == id))
-          resolve(users)
-        }
         //list all users
-        resolve(mockUsers)
+        const config: AxiosRequestConfig = { params: { id, brand, advertiser }, headers: { Authorization: `Bearer ${token}` } };
+        axios.get('/users', config).then(async res => {
+          const data: User[] = []
+          const allBrands = await this.listBrands(token)
+          res.data.forEach((user: { email: any; username: any; role: any; access: any; advertisers: any; }) => {
+            const { email, username, role, access, advertisers } = user
+            const brandIds = new Set();
+            advertisers.forEach((e: { brand: number }) => {
+              brandIds.add(e.brand);
+            });
+
+            const brand = allBrands.filter((e: { id: number; }) => Array.from(brandIds).includes(e.id))
+            data.push({ email, username, role: role.name, access, brand, advertisers: advertisers })
+
+          });
+          resolve(data)
+        });
       });
     },
     updateUser: async function (token: Token, id: ID, profile: User): Promise<User> {
       return new Promise<User>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
         const { username, email, password, role, access } = profile;
 
         if (username) {
@@ -151,42 +159,41 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of access must be string.");
         }
 
-
-        resolve(mockUsers[0])
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.put(`/users/${id}`, profile, config).then(async res => {
+          const { email, username, role, access, advertisers } = res.data
+          const brandIds = new Set();
+          advertisers.forEach((e: { brand: number }) => {
+            brandIds.add(e.brand);
+          });
+          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
+          const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+          resolve(data)
+        });
       });
     },
     deleteUser: async function (token: Token, id: ID): Promise<boolean> {
       return new Promise<boolean>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-        try {
-          const user = mockUsers.find(e => e.id == id);
-          const index = mockUsers.indexOf(user);
-          mockUsers.splice(index, 1)
-        }
-        catch (err) {
-          throw new Error("Invalid id");
-        }
-        resolve(true)
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.delete(`/users/${id}`, config).then(res => {
+          resolve(true)
+        });
       });
     },
     // role operations
-    // listRoles: async function (token: Token): Promise<Role[]> {
-    //   return new Promise<Role[]>((resolve) => {
-    //     if (token != 'strapi_mock_token') {
-    //       throw new Error("Invalid token.");
-    //     }
-    //     resolve(mockRoles)
-    //   });
-    // },
+    listRoles: async function (token: Token): Promise<Role[]> {
+      return new Promise<Role[]>((resolve) => {
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        axios.get<{ roles: Role[] }>('/users-permissions/roles', config).then(res => {
+          resolve(res.data.roles)
+        });
+      });
+    },
     // brand operations
-    createBrand: async function (token: Token, profile: Brand): Promise<Brand> {
+    createBrand: async function (token: Token, profile: updateBrand): Promise<Brand> {
       return new Promise<Brand>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
         const { name } = profile
         if (!name) {
           throw new Error("Please provie name in profile");
@@ -196,53 +203,53 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Invalid type of name");
         }
 
-        resolve(mockBrands[0])
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.post<Brand>('/brands', profile, config).then(res => {
+          const { id, name, advertisers } = res.data;
+          resolve({ id, name, advertisers })
+        });
       });
     },
     listBrands: async function (token: Token, id?: ID[]): Promise<Brand[]> {
       return new Promise<Brand[]>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
+        let params = new URLSearchParams();
         if (id) {
-          const brand = mockBrands.filter(e => id.includes(e.id))
-          resolve(brand)
+          id.forEach(e => {
+            params.append('id_in', e.toString())
+          })
+
         }
-        resolve(mockBrands)
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
+        axios.get<Brand[]>(`/brands`, config).then(res => {
+          const data: Brand[] = []
+          res.data.forEach(e => {
+            const brand = { id: e.id, name: e.name, advertisers: e.advertisers }
+            data.push(brand)
+          })
+          resolve(data)
+        });
       });
     },
     updateBrand: async function (token: Token, id: ID, profile: Brand): Promise<Brand> {
       return new Promise<Brand>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
-        resolve(mockBrands[0])
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.put<Brand>(`/brands/${id}`, profile, config).then(res => {
+          const { id, name, advertisers } = res.data;
+          resolve({ id, name, advertisers })
+        });
       });
     },
     deleteBrand: async function (token: Token, id: ID): Promise<boolean> {
       return new Promise<boolean>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-        try {
-          const brand = mockBrands.find(e => e.id == id);
-          const index = mockBrands.indexOf(brand);
-          mockBrands.splice(index, 1)
-        }
-        catch (err) {
-          throw new Error("Invalid id");
-        }
-        resolve(true)
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.delete(`/brands/${id}`, config).then(res => {
+          resolve(true)
+        });
       });
     },
     // advertiser operations
-    createAdvertiser: async function (token: Token, profile: Advertiser): Promise<Advertiser> {
+    createAdvertiser: async function (token: Token, profile: updateAdvertiser): Promise<Advertiser> {
       return new Promise<Advertiser>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
         const { name, brand } = profile;
 
         if (!name && brand) {
@@ -257,48 +264,57 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Invalid type of brand");
         }
 
-        resolve(mockAdvertisers[0])
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.post('/advertisers', profile, config).then(res => {
+          let { data } = res
+          data = {
+            id: data.id,
+            name: data.name,
+            brand: data.brand.id,
+            users: data.users
+          }
+          resolve(data)
+        });
       });
     },
     listAdvertisers: async function (token: Token, id?: ID[], brands?: ID[]): Promise<Advertiser[]> {
       return new Promise<Advertiser[]>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-        if (id) {
-          const advertiser = mockAdvertisers.filter(e => id.includes(e.id))
-          resolve(advertiser)
-        }
-        if (brands) {
-          const advertiser = mockAdvertisers.filter(e => brands.includes(e.brand))
-          resolve(advertiser)
-        }
-        resolve(mockAdvertisers)
+        const config: AxiosRequestConfig = { params: { id, brands }, headers: { Authorization: `Bearer ${token}` } };
+        axios.get('advertisers', config).then(res => {
+          const data: Advertiser[] = []
+          res.data.forEach((e: { id: any; name: any; brand: { id: any; }; users: any; }) => {
+            data.push({
+              id: e.id,
+              name: e.name,
+              brand: e.brand.id,
+              users: e.users
+            })
+          })
+          resolve(data)
+        });
       });
     },
     updateAdvertiser: async function (token: Token, id: ID, profile: Advertiser): Promise<Advertiser> {
       return new Promise<Advertiser>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-
-        resolve(mockAdvertisers[0]);
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.put(`/advertisers/${id}`, profile, config).then(res => {
+          let { data } = res
+          data = {
+            id: data.id,
+            name: data.name,
+            brand: data.brand.id,
+            users: data.users
+          }
+          resolve(data)
+        });
       });
     },
     deleteAdvertiser: async function (token: Token, id: ID): Promise<boolean> {
       return new Promise<boolean>((resolve) => {
-        if (token != 'strapi_mock_token') {
-          throw new Error("Invalid token.");
-        }
-        try {
-          const advertiser = mockAdvertisers.find(e => e.id == id);
-          const index = mockAdvertisers.indexOf(advertiser);
-          mockAdvertisers.splice(index, 1);
-        }
-        catch (err) {
-          throw new Error("Invalid id.");
-        }
-        resolve(true)
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        axios.delete(`/advertisers/${id}`, config).then(res => {
+          resolve(true)
+        });
       });
     },
   }

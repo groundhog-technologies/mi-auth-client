@@ -6,7 +6,7 @@ export const mockMe: User = {
     "id": 42,
     "username": "post",
     "email": "post@ghtinc.com",
-    "role": "user",
+    "role": "User",
     "access": "Both",
     "brand": [{ "id": 4, "name": "robi" }],
     "advertisers": [

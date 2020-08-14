@@ -1,5 +1,5 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token } from '../clientTool.interface'
-import { mockMe, mockJwt, mockUsers, mockBrands, mockAdvertisers } from './mockObjects'
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token, updateBrand, updateAdvertiser } from '../clientTool.interface'
+import { mockMe, mockJwt, mockUsers, mockBrands, mockAdvertisers, mockRoles } from './mockObjects'
 import { roleNames, isValidKey, isEmail, lastElement, assignObject } from '../utils'
 
 export default function mockStrapiClientTool(): ClientTool {
@@ -169,22 +169,22 @@ export default function mockStrapiClientTool(): ClientTool {
             });
         },
         // role operations
-        // listRoles: async function (token: Token): Promise<Role[]> {
-        //     return new Promise<Role[]>((resolve) => {
-        //         if (token != 'strapi_mock_token') {
-        //             throw new Error("Invalid token.");
-        //         }
-        //         resolve(mockRoles)
-        //     });
-        // },
+        listRoles: async function (token: Token): Promise<Role[]> {
+            return new Promise<Role[]>((resolve) => {
+                if (token != 'strapi_mock_token') {
+                    throw new Error("Invalid token.");
+                }
+                resolve(mockRoles)
+            });
+        },
         // brand operations
-        createBrand: async function (token: Token, profile: Brand): Promise<Brand> {
+        createBrand: async function (token: Token, profile: updateBrand): Promise<Brand> {
             return new Promise<Brand>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
 
-                const { name } = profile
+                const { name, advertisers = [] } = profile
                 if (!name) {
                     throw new Error("Please provie name in profile");
                 }
@@ -193,8 +193,9 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid type of name");
                 }
 
-                profile.id = lastElement(mockBrands).id + 1;
-                mockBrands.push(profile);
+                const id = lastElement(mockBrands).id + 1;
+                const advertisersInfo: Advertiser[] = mockAdvertisers.filter(e => profile.advertisers.includes(e.id))
+                mockBrands.push({ id, name, advertisers: advertisersInfo });
 
                 resolve(lastElement(mockBrands))
             });
@@ -240,7 +241,7 @@ export default function mockStrapiClientTool(): ClientTool {
             });
         },
         // advertiser operations
-        createAdvertiser: async function (token: Token, profile: Advertiser): Promise<Advertiser> {
+        createAdvertiser: async function (token: Token, profile: updateAdvertiser): Promise<Advertiser> {
             return new Promise<Advertiser>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
@@ -260,8 +261,9 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid type of brand");
                 }
 
-                profile.id = lastElement(mockAdvertisers).id + 1;
-                mockAdvertisers.push(profile);
+                const id = lastElement(mockAdvertisers).id + 1;
+                const users: User[] = mockUsers.filter(e => profile.users.includes(e.id))
+                mockAdvertisers.push({ id, name, brand, users });
                 resolve(lastElement(mockAdvertisers))
             });
         },
