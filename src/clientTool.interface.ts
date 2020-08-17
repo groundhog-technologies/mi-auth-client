@@ -6,8 +6,8 @@ export interface UserRegisterInfo {
     email: string,
     password: string,
     role: string,
-    access: string,
-    advertisers?: [ID],
+    platform: string[],
+    advertisers?: ID[],
 }
 
 export interface User {
@@ -15,7 +15,7 @@ export interface User {
     username: string,
     email: string,
     role: string,
-    access: string,
+    platform: string[],
     password?: string,
     brand: Brand[],
     advertisers?: Advertiser[],
@@ -51,6 +51,11 @@ export interface Advertiser {
     users?: User[]
 }
 
+export interface Platform {
+    id?: ID,
+    name: string
+}
+
 export interface updateAdvertiser {
     id?: ID,
     name: string,
@@ -68,6 +73,7 @@ export interface ClientTool {
     deleteUser(token: Token, id: ID): Promise<boolean>,
     // role operations
     listRoles(token: Token): Promise<Role[]>,
+    listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
     createBrand(token: Token, profile: updateBrand): Promise<Brand>,
     listBrands(token: Token, params: Pick<listParams, "ids">): Promise<Brand[]>,
