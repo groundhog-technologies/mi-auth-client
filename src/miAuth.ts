@@ -92,9 +92,19 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of password must be string.");
         }
 
-        axios.post<UserPermissionLogin>('/auth/local', { identifier: name, password })
-          .then(res => {
-            resolve(res.data)
+        axios.post('/auth/local', { identifier: name, password })
+          .then(async res => {
+            let { jwt, user: { email, username, role, platforms, advertisers } } = res.data
+
+            const brandIds = new Set();
+            advertisers.forEach((e: { brand: number }) => {
+              brandIds.add(e.brand);
+            });
+            const brand = brandIds.size == 0 ? [] : await this.listBrands(jwt, { ids: Array.from(brandIds) })
+            const reducedPlatform = _.map(platforms, e => e.name)
+            const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
+            const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers: reducedAdvertiser }
+            resolve({ jwt, user: data })
           })
           .catch(err => console.log(err))
       });
@@ -108,7 +118,7 @@ function strapiClientTool(url: string): ClientTool {
         axios.get('/users/me', config)
           .then(async res => {
             let { email, username, role, platforms, advertisers } = res.data
-            console.log(res.data)
+
             const brandIds = new Set();
             const reducedPlatform: string[] = [];
             advertisers.forEach((e: { brand: number }) => {
