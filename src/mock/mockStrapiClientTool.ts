@@ -14,9 +14,9 @@ export default function mockStrapiClientTool(): ClientTool {
                 if (!profile) {
                     throw new Error("Please provide your user profile.");
                 }
-                let { username, email, password, role, access, advertisers } = profile
+                let { username, email, password, role, platform, advertisers } = profile
 
-                if (!username && !email && !password && !role && !access && !advertisers) {
+                if (!username && !email && !password && !role && !platform && !advertisers) {
                     throw new Error("Please provide username, email, password, role, access, advertiser in profile.");
                 }
 
@@ -40,8 +40,8 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
                 }
 
-                if (typeof (access) != 'string') {
-                    throw new Error("Type of access must be string.");
+                if (!Array.isArray(platform)) {
+                    throw new Error("Type of platform must be array.");
                 }
 
                 const id = lastElement(mockUsers).id + 1;
@@ -51,7 +51,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     const b = mockBrands.find(c => c.id == e.brand)
                     brand.push(b)
                 })
-                const newUser = { id, username, email, password, role, access, brand, advertisers: advertiserInfo }
+                const newUser = { id, username, email, password, role, platform, brand, advertisers: advertiserInfo }
                 mockUsers.push(newUser);
 
                 resolve(lastElement(mockUsers))
@@ -120,7 +120,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Invalid token.");
                 }
 
-                const { username, email, password, role, access } = profile;
+                const { username, email, password, role, platform } = profile;
 
                 if (username) {
                     throw new Error("username cannot be updated");
@@ -142,8 +142,8 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
                 }
 
-                if (access && typeof (access) != 'string') {
-                    throw new Error("Type of access must be string.");
+                if (platform && !Array.isArray(platform)) {
+                    throw new Error("Type of platform must be array.");
                 }
 
                 const user = mockUsers.find(e => e.id == id);

@@ -1,4 +1,4 @@
-import { Advertiser, Brand, Role, User } from "../clientTool.interface";
+import { Advertiser, Brand, Role, User, Platform } from "../clientTool.interface";
 
 export const mockJwt = "strapi_mock_token";
 
@@ -7,7 +7,7 @@ export const mockMe: User = {
     "username": "post",
     "email": "post@ghtinc.com",
     "role": "User",
-    "access": "Both",
+    "platform": ["DMP", "DSP"],
     "brand": [{ "id": 4, "name": "robi" }],
     "advertisers": [
         {
@@ -24,7 +24,7 @@ export const mockUsers: User[] = [
         "username": "dspuser",
         "email": "dspuser@ghtinc.com",
         "role": "User",
-        "access": "DSP",
+        "platform": ["DMP", "DSP"],
         "brand": [{ "id": 4, "name": "robi" }],
         "advertisers": [
             {
@@ -39,7 +39,7 @@ export const mockUsers: User[] = [
         "username": "post",
         "email": "post@ghtinc.com",
         "role": "User",
-        "access": "Both",
+        "platform": ["DMP", "DSP"],
         "brand": [{ "id": 4, "name": "robi" }],
         "advertisers": [
             {
@@ -93,5 +93,16 @@ export const mockAdvertisers: Advertiser[] = [
         "id": 7,
         "name": "MOS5",
         "brand": 4,
+    }
+];
+
+export const mockPlatfrom: Platform[] = [
+    {
+        id: 1,
+        name: "DMP"
+    },
+    {
+        id: 2,
+        name: "DSP"
     }
 ];

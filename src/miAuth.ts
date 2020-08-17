@@ -1,10 +1,10 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey } from './utils';
 import * as _ from 'lodash'
 import { identity } from 'lodash';
-import { mockAdvertisers } from './mock/mockObjects';
+import { mockAdvertisers, mockMe } from './mock/mockObjects';
 
 
 function strapiClientTool(url: string): ClientTool {
@@ -18,9 +18,9 @@ function strapiClientTool(url: string): ClientTool {
         if (!profile) {
           throw new Error("Please provide your user profile.");
         }
-        const { username, email, password, role, access, advertisers } = profile;
+        const { username, email, password, role, platform, advertisers } = profile;
 
-        if (!username && !email && !password && !role && !access && !advertisers) {
+        if (!username && !email && !password && !role && !platform && !advertisers) {
           throw new Error("Please provide username, email, password, role, access, advertiser in profile.");
         }
 
@@ -40,25 +40,35 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of role must be string.");
         }
 
-        if (typeof (access) != 'string') {
-          throw new Error("Type of access must be string.");
+        if (!Array.isArray(platform)) {
+          throw new Error("Type of platform must be array.");
         }
 
-        const roles: Role[] = await this.listRoles(token);
+        const allRoles: Role[] = await this.listRoles(token);
+        const allPlatforms: Platform[] = await this.listPlatforms(token);
 
         const data: any = profile;
-        data.role = roles.find(e => e.name == roleNames[role]).id;
+        data.role = _.find(allRoles, e => e.name == roleNames[role]).id;
+        data.platforms = _.map(_.filter(allPlatforms, e => { return platform.includes(e.name) }), e => e.id)
+
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.post('/auth/local/register', data, config).then(async res => {
-          const { email, username, role, access, advertisers = [] } = res.data
+          const { email, username, role, platforms = [], advertisers = [] } = res.data.user
           const brandIds = new Set();
+          const reducedPlatform: string[] = [];
+
           advertisers.forEach((e: { brand: number }) => {
             brandIds.add(e.brand);
           });
+          platforms.forEach((e: { name: string; }) => {
+            reducedPlatform.push(e.name)
+          });
+
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
-          const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+          const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
           resolve(data)
         }).catch(err => {
+          console.log(err)
           if (err.response)
             console.log(err.response.data.data[0])
         })
@@ -97,13 +107,18 @@ function strapiClientTool(url: string): ClientTool {
         }
         axios.get('/users/me', config)
           .then(async res => {
-            const { email, username, role, access, advertisers } = res.data
+            let { email, username, role, platforms, advertisers } = res.data
+            console.log(res.data)
             const brandIds = new Set();
+            const reducedPlatform: string[] = [];
             advertisers.forEach((e: { brand: number }) => {
               brandIds.add(e.brand);
             });
             const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
-            const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+            platforms.forEach((e: { name: string; }) => {
+              reducedPlatform.push(e.name)
+            });
+            const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
             resolve(data)
           })
           .catch(err => console.log(err))
@@ -138,15 +153,19 @@ function strapiClientTool(url: string): ClientTool {
         axios.get('/users', config).then(async res => {
           const data: User[] = []
           const allBrands = await this.listBrands(token)
-          res.data.forEach((user: { email: any; username: any; role: any; access: any; advertisers: any; }) => {
-            const { email, username, role, access, advertisers } = user
+          res.data.forEach((user: { email: any; username: any; role: any; platforms: any; advertisers: any; }) => {
+            const { email, username, role, platforms, advertisers } = user
             const brandIds = new Set();
+            const reducedPlatform: string[] = [];
             advertisers.forEach((e: { brand: number }) => {
               brandIds.add(e.brand);
             });
+            platforms.forEach((e: { name: string; }) => {
+              reducedPlatform.push(e.name)
+            });
 
             const brand = allBrands.filter((e: { id: number; }) => Array.from(brandIds).includes(e.id))
-            data.push({ email, username, role: role.name, access, brand, advertisers: advertisers })
+            data.push({ email, username, role: role.name, platform: reducedPlatform, brand, advertisers })
 
           });
           resolve(data)
@@ -154,8 +173,8 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     updateUser: async function (token: Token, id: ID, profile: User): Promise<User> {
-      return new Promise<User>((resolve) => {
-        const { username, email, password, role, access } = profile;
+      return new Promise<User>(async (resolve) => {
+        const { username, email, password, role, platform } = profile;
 
         if (username) {
           throw new Error("username cannot be updated");
@@ -173,19 +192,35 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of role must be id.");
         }
 
-        if (access && typeof (access) != 'string') {
-          throw new Error("Type of access must be string.");
+        if (platform && !Array.isArray(platform)) {
+          throw new Error("Type of platform must be array.");
+        }
+
+        const data: any = profile;
+
+        if (role) {
+          const allRoles: Role[] = await this.listRoles(token);
+          data.role = _.find(allRoles, e => e.name == roleNames[role]).id;
+        }
+
+        if (platform) {
+          const allPlatforms: Platform[] = await this.listPlatforms(token);
+          data.platforms = _.map(_.filter(allPlatforms, e => { return platform.includes(e.name) }), e => e.id)
         }
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        axios.put(`/users/${id}`, profile, config).then(async res => {
-          const { email, username, role, access, advertisers } = res.data
+        axios.put(`/users/${id}`, data, config).then(async res => {
+          const { email, username, role, platforms, advertisers } = res.data
           const brandIds = new Set();
+          const reducedPlatform: string[] = [];
           advertisers.forEach((e: { brand: number }) => {
             brandIds.add(e.brand);
           });
+          platforms.forEach((e: { name: string; }) => {
+            reducedPlatform.push(e.name)
+          });
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
-          const data: User = { email, username, role: role.name, access, brand, advertisers: advertisers }
+          const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
           resolve(data)
         });
       });
@@ -206,6 +241,17 @@ function strapiClientTool(url: string): ClientTool {
         };
         axios.get<{ roles: Role[] }>('/users-permissions/roles', config).then(res => {
           resolve(res.data.roles)
+        });
+      });
+    },
+    // platform operations
+    listPlatforms: async function (token: Token): Promise<Platform[]> {
+      return new Promise<Platform[]>((resolve) => {
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        axios.get<Platform[]>('/platforms', config).then(res => {
+          resolve(res.data)
         });
       });
     },
