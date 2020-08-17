@@ -39,11 +39,11 @@ miAuth.createUser(jwt, {
         email: 'test@ghtinc.com',
         password: 'test',
         role: "User",
-        access: 'Both',
+        platform: ['DMP'],
         advertisers: [7],
     }).then(user => console.log(user));
 
-miAuth.updateUser(jwt, id = 44, { access: 'Both' }).then(user => console.log(user))
+miAuth.updateUser(jwt, id = 44, { platform: ['DSP] }).then(user => console.log(user))
 
 miAuth.listUsers(jwt, {ids:[], brands:[], advertisers:[]}).then(user => console.log(user));
 ```
