@@ -53,19 +53,19 @@ function strapiClientTool(url: string): ClientTool {
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.post('/auth/local/register', data, config).then(async res => {
-          const { email, username, role, platforms = [], advertisers = [] } = res.data.user
+          const { id, email, username, role, platforms = [], advertisers = [] } = res.data.user
           const brandIds = new Set();
           const reducedPlatform: string[] = [];
-
           advertisers.forEach((e: { brand: number }) => {
+            console.log(e)
             brandIds.add(e.brand);
           });
           platforms.forEach((e: { name: string; }) => {
             reducedPlatform.push(e.name)
           });
 
-          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, Array.from(brandIds))
-          const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
+          const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
+          const data: User = { id, email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
           resolve(data)
         }).catch(err => {
           console.log(err)
@@ -94,7 +94,7 @@ function strapiClientTool(url: string): ClientTool {
 
         axios.post('/auth/local', { identifier: name, password })
           .then(async res => {
-            let { jwt, user: { email, username, role, platforms, advertisers } } = res.data
+            let { jwt, user: { id, email, username, role, platforms, advertisers } } = res.data
 
             const brandIds = new Set();
             advertisers.forEach((e: { brand: number }) => {
@@ -103,7 +103,7 @@ function strapiClientTool(url: string): ClientTool {
             const brand = brandIds.size == 0 ? [] : await this.listBrands(jwt, { ids: Array.from(brandIds) })
             const reducedPlatform = _.map(platforms, e => e.name)
             const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
-            const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers: reducedAdvertiser }
+            const data: User = { id, email, username, role: role.name, platform: reducedPlatform, brand, advertisers: reducedAdvertiser }
             resolve({ jwt, user: data })
           })
           .catch(err => console.log(err))
@@ -117,7 +117,7 @@ function strapiClientTool(url: string): ClientTool {
         }
         axios.get('/users/me', config)
           .then(async res => {
-            let { email, username, role, platforms, advertisers } = res.data
+            let { id, email, username, role, platforms, advertisers } = res.data
 
             const brandIds = new Set();
             const reducedPlatform: string[] = [];
@@ -128,7 +128,7 @@ function strapiClientTool(url: string): ClientTool {
             platforms.forEach((e: { name: string; }) => {
               reducedPlatform.push(e.name)
             });
-            const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
+            const data: User = { id, email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
             resolve(data)
           })
           .catch(err => console.log(err))
@@ -163,8 +163,8 @@ function strapiClientTool(url: string): ClientTool {
         axios.get('/users', config).then(async res => {
           const data: User[] = []
           const allBrands = await this.listBrands(token)
-          res.data.forEach((user: { email: any; username: any; role: any; platforms: any; advertisers: any; }) => {
-            const { email, username, role, platforms, advertisers } = user
+          res.data.forEach((user: { id: any, email: any; username: any; role: any; platforms: any; advertisers: any; }) => {
+            const { id, email, username, role, platforms, advertisers } = user
             const brandIds = new Set();
             const reducedPlatform: string[] = [];
             advertisers.forEach((e: { brand: number }) => {
@@ -175,7 +175,7 @@ function strapiClientTool(url: string): ClientTool {
             });
 
             const brand = allBrands.filter((e: { id: number; }) => Array.from(brandIds).includes(e.id))
-            data.push({ email, username, role: role.name, platform: reducedPlatform, brand, advertisers })
+            data.push({ id, email, username, role: role.name, platform: reducedPlatform, brand, advertisers })
 
           });
           resolve(data)
@@ -220,7 +220,7 @@ function strapiClientTool(url: string): ClientTool {
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.put(`/users/${id}`, data, config).then(async res => {
-          const { email, username, role, platforms, advertisers } = res.data
+          const { id, email, username, role, platforms, advertisers } = res.data
           const brandIds = new Set();
           const reducedPlatform: string[] = [];
           advertisers.forEach((e: { brand: number }) => {
@@ -230,7 +230,7 @@ function strapiClientTool(url: string): ClientTool {
             reducedPlatform.push(e.name)
           });
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
-          const data: User = { email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
+          const data: User = { id, email, username, role: role.name, platform: reducedPlatform, brand, advertisers }
           resolve(data)
         });
       });
