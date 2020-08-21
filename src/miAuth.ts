@@ -57,7 +57,6 @@ function strapiClientTool(url: string): ClientTool {
           const brandIds = new Set();
           const reducedPlatform: string[] = [];
           advertisers.forEach((e: { brand: number }) => {
-            console.log(e)
             brandIds.add(e.brand);
           });
           platforms.forEach((e: { name: string; }) => {
@@ -141,7 +140,6 @@ function strapiClientTool(url: string): ClientTool {
         }
 
         const { ids, brands, advertisers } = select
-        console.log(advertisers)
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
