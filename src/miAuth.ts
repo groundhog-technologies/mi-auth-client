@@ -196,8 +196,8 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Type of password must be string.");
         }
 
-        if (role && typeof (role) != 'number') {
-          throw new Error("Type of role must be id.");
+        if (role && typeof (role) != 'string') {
+          throw new Error("Type of role must be string.");
         }
 
         if (platform && !Array.isArray(platform)) {

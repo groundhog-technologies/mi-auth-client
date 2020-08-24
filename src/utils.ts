@@ -9,10 +9,10 @@ export const assignObject = <T extends object>(target: T, arg: Partial<T>) => Ob
 export const lastElement = <T extends object>(array: T[]) => array[array.length - 1];
 
 export const roleNames = {
-    'Root': 'root',
-    'SuperAdmin': 'super_admin',
-    'Admin': 'admin',
-    'User': 'user'
+    'root': 'root',
+    'superAdmin': 'super_admin',
+    'admin': 'admin',
+    'user': 'user'
 }
 
 export const isValidKey = <T extends object>(key: string, object: T) => {

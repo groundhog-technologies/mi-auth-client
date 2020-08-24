@@ -33,11 +33,11 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
 
                 if (typeof (role) != 'string') {
-                    throw new Error("Type of role must be id.");
+                    throw new Error("Type of role must be string.");
                 }
 
                 if (!isValidKey(role, roleNames)) {
-                    throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
+                    throw new Error("Please select role in one of root, superAdmin, admin, user")
                 }
 
                 if (!Array.isArray(platform)) {
@@ -139,7 +139,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
 
                 if (role && !isValidKey(role, roleNames)) {
-                    throw new Error("Please select role in one of Root, SuperAdmin, Admin, User")
+                    throw new Error("Please select role in one of root, superAdmin, admin, user")
                 }
 
                 if (platform && !Array.isArray(platform)) {
