@@ -378,7 +378,7 @@ function strapiClientTool(url: string): ClientTool {
           data = {
             id: data.id,
             name: data.name,
-            brand: data.brand.id,
+            brand: data.brand,
             users: data.users
           }
           resolve(data)
@@ -406,11 +406,11 @@ function strapiClientTool(url: string): ClientTool {
         const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get('advertisers', config).then(res => {
           const data: Advertiser[] = []
-          res.data.forEach((e: { id: any; name: any; brand: { id: any; }; users: any; }) => {
+          res.data.forEach((e: { id: any; name: any; brand: any; users: any; }) => {
             data.push({
               id: e.id,
               name: e.name,
-              brand: e.brand.id,
+              brand: e.brand,
               users: e.users
             })
           })
@@ -429,7 +429,7 @@ function strapiClientTool(url: string): ClientTool {
           data = {
             id: data.id,
             name: data.name,
-            brand: data.brand.id,
+            brand: data.brand,
             users: data.users
           }
           resolve(data)
