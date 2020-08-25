@@ -20,3 +20,7 @@ export const isValidKey = <T extends object>(key: string, object: T) => {
         return true
     }
 }
+
+export const camelCase = (s: string) => {
+    return _.camelCase(s)
+}
