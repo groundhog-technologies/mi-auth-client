@@ -314,7 +314,6 @@ function strapiClientTool(url: string): ClientTool {
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
-            console.log(e)
             if (e) params.append('id_in', e.toString())
           })
         }
