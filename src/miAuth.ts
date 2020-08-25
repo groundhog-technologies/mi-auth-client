@@ -150,17 +150,17 @@ function strapiClientTool(url: string): ClientTool {
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
-            params.append('id_in', e.toString())
+            if (e) params.append('id_in', e.toString())
           })
         }
         if (brands) {
           brands.forEach(e => {
-            params.append('advertisers.brand_in', e.toString())
+            if (e) params.append('advertisers.brand_in', e.toString())
           })
         }
         if (advertisers) {
           advertisers.forEach(e => {
-            params.append('advertisers.id_in', e.toString())
+            if (e) params.append('advertisers.id_in', e.toString())
           })
         }
 
@@ -314,7 +314,8 @@ function strapiClientTool(url: string): ClientTool {
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
-            params.append('id_in', e.toString())
+            console.log(e)
+            if (e) params.append('id_in', e.toString())
           })
         }
 
@@ -395,12 +396,12 @@ function strapiClientTool(url: string): ClientTool {
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
-            params.append('id_in', e.toString())
+            if (e) params.append('id_in', e.toString())
           })
         }
         if (brands) {
           brands.forEach(e => {
-            params.append('brand_in', e.toString())
+            if (e) params.append('brand_in', e.toString())
           })
         }
         const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
