@@ -5,6 +5,7 @@ import { assignObject, isEmail, roleNames, isValidKey } from './utils';
 import * as _ from 'lodash'
 import { identity, camelCase } from 'lodash';
 import { mockAdvertisers, mockMe } from './mock/mockObjects';
+import { threadId } from 'worker_threads';
 
 
 function strapiClientTool(url: string): ClientTool {
@@ -357,7 +358,7 @@ function strapiClientTool(url: string): ClientTool {
     },
     // advertiser operations
     createAdvertiser: async function (token: Token, profile: updateAdvertiser): Promise<Advertiser> {
-      return new Promise<Advertiser>((resolve, reject) => {
+      return new Promise<Advertiser>(async (resolve, reject) => {
         const { name, brand } = profile;
 
         if (!name && brand) {
@@ -368,9 +369,7 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Invalid type of name");
         }
 
-        if (typeof (brand) != 'number') {
-          throw new Error("Invalid type of brand");
-        }
+        const roles = await this.listRoles(token);
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.post('/advertisers', profile, config).then(res => {
@@ -379,7 +378,10 @@ function strapiClientTool(url: string): ClientTool {
             id: data.id,
             name: data.name,
             brand: data.brand,
-            users: data.users
+            users: data.users.map((e: { id: any; email: any; username: any; role: any; }) => {
+              let { id, email, username, role } = e
+              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+            })
           }
           resolve(data)
         }).catch(err => {
@@ -389,7 +391,7 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     listAdvertisers: async function (token: Token, select: Pick<listParams, "ids" | "brands">): Promise<Advertiser[]> {
-      return new Promise<Advertiser[]>((resolve, reject) => {
+      return new Promise<Advertiser[]>(async (resolve, reject) => {
         const { ids, brands } = select
 
         let params = new URLSearchParams();
@@ -403,6 +405,7 @@ function strapiClientTool(url: string): ClientTool {
             if (e) params.append('brand_in', e.toString())
           })
         }
+        const roles = await this.listRoles(token);
         const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get('advertisers', config).then(res => {
           const data: Advertiser[] = []
@@ -411,7 +414,10 @@ function strapiClientTool(url: string): ClientTool {
               id: e.id,
               name: e.name,
               brand: e.brand,
-              users: e.users
+              users: e.users.map((user: { id: any; email: any; username: any; role: any; }) => {
+                let { id, email, username, role } = user
+                return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+              })
             })
           })
           resolve(data)
@@ -422,7 +428,8 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     updateAdvertiser: async function (token: Token, id: ID, profile: Advertiser): Promise<Advertiser> {
-      return new Promise<Advertiser>((resolve, reject) => {
+      return new Promise<Advertiser>(async (resolve, reject) => {
+        const roles = await this.listRoles(token);
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.put(`/advertisers/${id}`, profile, config).then(res => {
           let { data } = res
@@ -430,7 +437,10 @@ function strapiClientTool(url: string): ClientTool {
             id: data.id,
             name: data.name,
             brand: data.brand,
-            users: data.users
+            users: data.users.map((user: { id: any; email: any; username: any; role: any; }) => {
+              let { id, email, username, role } = user
+              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+            })
           }
           resolve(data)
         }).catch(err => {
