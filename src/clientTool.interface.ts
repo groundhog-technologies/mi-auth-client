@@ -36,10 +36,10 @@ export interface Brand {
     id?: ID,
     name: string,
     advertisers?: Advertiser[]
-    owner?: BrandOwner
+    owner?: BrandOwner[]
 }
 
-export type BrandOwner = Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">>
+export type BrandOwner = Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">> | []
 
 export interface updateBrand {
     id?: ID,

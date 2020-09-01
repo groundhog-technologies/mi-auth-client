@@ -301,7 +301,7 @@ function strapiClientTool(url: string): ClientTool {
     // brand operations
     createBrand: async function (token: Token, profile: updateBrand): Promise<Brand> {
       return new Promise<Brand>(async (resolve, reject) => {
-        const { name, owner } = profile
+        const { name, owner = [] } = profile
         if (!name) {
           throw new Error("Please provie name in profile");
         }
@@ -310,7 +310,7 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Invalid type of name");
         }
 
-        if (profile.owner.length) {
+        if (owner.length) {
           await this.updateUser(token, owner, { role: 'superAdmin' })
         }
 
@@ -341,19 +341,22 @@ function strapiClientTool(url: string): ClientTool {
           params.append('role.name', roleNames['superAdmin'])
           const superAdmins: StrapiUser[] = await users(token, params)
           res.data.forEach(async e => {
-            let owners = superAdmins.find(o => {
+            let owners = superAdmins.filter(o => {
               const ad = o.advertisers[0] ? o.advertisers[0] : { brand: -1 }
               return ad.brand == e.id
             })
-            const owner: BrandOwner = owners ? {
-              username: owners.username,
-              email: owners.email,
-              id: owners.id,
-              role: camelCase(owners.role.name),
-              platform: owners.platforms.map(e => e.name)
-            } : {}
+            const owner: BrandOwner[] = owners ?
+              owners.map(o => {
+                return {
+                  username: o.username,
+                  email: o.email,
+                  id: o.id,
+                  role: camelCase(o.role.name),
+                  platform: o.platforms.map(e => e.name)
+                }
+              }) : []
 
-            const brand = { id: e.id, name: e.name, advertisers: e.advertisers, owner: owner }
+            const brand = { id: e.id, name: e.name, advertisers: e.advertisers, owners: owner }
             data.push(brand)
           })
           resolve(data)

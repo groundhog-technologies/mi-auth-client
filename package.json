@@ -1,6 +1,6 @@
 {
   "name": "mi-auth-client",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Use to MI product authorization and authentication",
   "main": "dist/main.js",
   "types": "dist/main.d.ts",
