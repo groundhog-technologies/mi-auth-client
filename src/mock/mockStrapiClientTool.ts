@@ -216,14 +216,15 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve(mockBrands)
             });
         },
-        updateBrand: async function (token: Token, id: ID, profile: Brand): Promise<Brand> {
+        updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<Brand> {
             return new Promise<Brand>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
                 const brand = mockBrands.find(e => e.id == id);
                 const index = mockBrands.indexOf(brand);
-                mockBrands[index] = assignObject(mockBrands[index], profile)
+                const owner = mockUsers.find(e => e.id == profile.owner[0])
+                mockBrands[index] = assignObject(mockBrands[index], { name: profile.name, owner })
 
                 resolve(mockBrands[index])
             });

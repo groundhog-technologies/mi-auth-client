@@ -36,12 +36,16 @@ export interface Brand {
     id?: ID,
     name: string,
     advertisers?: Advertiser[]
+    owner?: BrandOwner
 }
+
+export type BrandOwner = Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">>
 
 export interface updateBrand {
     id?: ID,
     name: string,
-    advertisers?: number[]
+    advertisers?: number[],
+    owner?: number[]
 }
 
 export interface Advertiser {
@@ -71,13 +75,14 @@ export interface ClientTool {
     listUsers(token: Token, params: listParams): Promise<User[]>,
     updateUser(token: Token, id: ID, profile: User): Promise<User>,
     deleteUser(token: Token, id: ID): Promise<boolean>,
+    deleteSuperAdmin?(token: Token, brand: ID): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
     listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
     createBrand(token: Token, profile: updateBrand): Promise<Brand>,
     listBrands(token: Token, params: Pick<listParams, "ids">): Promise<Brand[]>,
-    updateBrand(token: Token, id: ID, profile: Brand): Promise<Brand>,
+    updateBrand(token: Token, id: ID, profile: updateBrand): Promise<Brand>,
     deleteBrand(token: Token, id: ID): Promise<boolean>,
     // advertiser operations
     createAdvertiser(token: Token, profile: updateAdvertiser): Promise<Advertiser>,
@@ -96,4 +101,5 @@ export interface listParams {
     ids?: ID[],
     brands?: ID[],
     advertisers?: ID[],
+    roles?: string[]
 }
