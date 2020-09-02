@@ -373,7 +373,7 @@ function strapiClientTool(url: string): ClientTool {
       const { name, owners, advertisers } = profile
       // update owner
       if (owners && owners.length) {
-        const advertisers = this.listAdvertisers(token, { brands: [id] })
+        const advertisers = await this.listAdvertisers(token, { brands: [id] })
         owners.forEach(async owner => {
           await this.updateUser(token, owner, { advertisers: advertisers.map((e: { id: any; }) => e.id) })
         })
