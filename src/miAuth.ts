@@ -14,10 +14,10 @@ function strapiClientTool(url: string): ClientTool {
   return {
     // user operations
     deleteSuperAdmin: async function (token: Token, brand: number): Promise<void> {
-      const superAdmins = await this.listUsers(token, { brands: [brand], role: ['superAdmin'] })
+      const superAdmins = await this.listUsers(token, { brands: [brand], roles: ['superAdmin'] })
       await Promise.all[
         superAdmins.forEach((e: { id: any; }) => {
-          this.updateUser(token, e.id, { advertiser: [] })
+          this.updateUser(token, e.id, { advertisers: [] })
         })]
     },
 
@@ -301,7 +301,7 @@ function strapiClientTool(url: string): ClientTool {
     // brand operations
     createBrand: async function (token: Token, profile: updateBrand): Promise<Brand> {
       return new Promise<Brand>(async (resolve, reject) => {
-        const { name, owner = [] } = profile
+        const { name, owners = [] } = profile
         if (!name) {
           throw new Error("Please provie name in profile");
         }
@@ -310,13 +310,16 @@ function strapiClientTool(url: string): ClientTool {
           throw new Error("Invalid type of name");
         }
 
-        if (owner.length) {
-          await this.updateUser(token, owner, { role: 'superAdmin' })
-        }
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        axios.post<Brand>('/brands', profile, config).then(res => {
+        axios.post<Brand>('/brands', profile, config).then(async res => {
           const { id, name, advertisers } = res.data;
+          if (owners.length) {
+            const advertisers = await this.listAdvertisers(token, { brands: [id] })
+            owners.forEach(owner => {
+              this.updateUser(token, owner, { advertisers: advertisers.map((e: { id: any; }) => e.id) })
+            })
+          }
           resolve({ id, name, advertisers })
         }).catch(err => {
           console.log(err)
@@ -367,14 +370,21 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<Brand> {
-      if (profile.owner.length) {
-        this.updateUser(token, profile.owner, { role: 'superAdmin' })
-      } else {
-        this.deleteSuperAdmin(token, id)
+      const { name, owners, advertisers } = profile
+      // update owner
+      if (owners && owners.length) {
+        const advertisers = this.listAdvertisers(token, { brands: [id] })
+        owners.forEach(async owner => {
+          await this.updateUser(token, owner, { advertisers: advertisers.map((e: { id: any; }) => e.id) })
+        })
+      } else if (owners && owners.length == 0) {
+        console.log('delete')
+        await this.deleteSuperAdmin(token, id)
       }
+      // update brand
       return new Promise<Brand>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        axios.put<Brand>(`/brands/${id}`, profile, config).then(res => {
+        axios.put<Brand>(`/brands/${id}`, { name, advertisers }, config).then(res => {
           const { id, name, advertisers } = res.data;
           resolve({ id, name, advertisers })
         }).catch(err => {

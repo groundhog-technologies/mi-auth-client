@@ -223,8 +223,8 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
                 const brand = mockBrands.find(e => e.id == id);
                 const index = mockBrands.indexOf(brand);
-                const owner = mockUsers.filter(e => e.id == profile.owner[0])
-                mockBrands[index] = assignObject(mockBrands[index], { name: profile.name, owner })
+                const owners = mockUsers.filter(e => e.id == profile.owners[0])
+                mockBrands[index] = assignObject(mockBrands[index], { name: profile.name, owners })
 
                 resolve(mockBrands[index])
             });
