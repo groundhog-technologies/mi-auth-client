@@ -1,4 +1,4 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey, setUrl, users } from './utils';
@@ -21,8 +21,8 @@ function strapiClientTool(url: string): ClientTool {
         })]
     },
 
-    createUser: async function (token: Token, profile: UserRegisterInfo): Promise<User> {
-      return new Promise<User>(async (resolve, reject) => {
+    createUser: async function (token: Token, profile: UserRegisterInfo): Promise<result> {
+      return new Promise<result>(async (resolve) => {
         if (!profile) {
           throw new Error("Please provide your user profile.");
         }
@@ -73,12 +73,13 @@ function strapiClientTool(url: string): ClientTool {
 
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
           const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand, advertisers }
-          resolve(data)
+          resolve({ data, error: null })
         }).catch(err => {
-          console.log(err)
+          const res = _.get(err, ['response', 'data', 'message'], [{}])[0]
+          const message = res.messages[0].message
           if (err.response)
-            console.log(err.response.data.data[0])
-          reject(err)
+            resolve({ data: null, error: message })
+          //reject(err)
         })
       });
     },
@@ -373,12 +374,12 @@ function strapiClientTool(url: string): ClientTool {
       const { name, owners, advertisers } = profile
       // update owner
       if (owners && owners.length) {
+        await this.deleteSuperAdmin(token, id)
         const advertisers = await this.listAdvertisers(token, { brands: [id] })
         owners.forEach(async owner => {
           await this.updateUser(token, owner, { advertisers: advertisers.map((e: { id: any; }) => e.id) })
         })
       } else if (owners && owners.length == 0) {
-        console.log('delete')
         await this.deleteSuperAdmin(token, id)
       }
       // update brand

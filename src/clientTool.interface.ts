@@ -67,11 +67,16 @@ export interface updateAdvertiser {
     users?: number[]
 }
 
+export interface result {
+    data: any,
+    error: any
+}
+
 export interface ClientTool {
     // user operations
     login(name: string, password: string): Promise<UserPermissionLogin>,
     getMe(token: Token): Promise<User>
-    createUser(token: Token, profile: UserRegisterInfo): Promise<User>,
+    createUser(token: Token, profile: UserRegisterInfo): Promise<result>,
     listUsers(token: Token, params: listParams): Promise<User[]>,
     updateUser(token: Token, id: ID, profile: User): Promise<User>,
     deleteUser(token: Token, id: ID): Promise<boolean>,
@@ -89,7 +94,6 @@ export interface ClientTool {
     listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">): Promise<Advertiser[]>,
     updateAdvertiser(token: Token, id: ID, profile: Advertiser): Promise<Advertiser>,
     deleteAdvertiser(token: Token, id: ID): Promise<boolean>,
-
 }
 
 export interface ClientToolParams {

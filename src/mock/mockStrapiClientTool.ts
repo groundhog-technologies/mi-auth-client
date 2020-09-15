@@ -1,12 +1,12 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token, updateBrand, updateAdvertiser, listParams } from '../clientTool.interface'
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ID, Role, Brand, Advertiser, Token, updateBrand, updateAdvertiser, listParams, result } from '../clientTool.interface'
 import { mockMe, mockJwt, mockUsers, mockBrands, mockAdvertisers, mockRoles } from './mockObjects'
 import { roleNames, isValidKey, isEmail, lastElement, assignObject } from '../utils'
 
 export default function mockStrapiClientTool(): ClientTool {
     return {
         // user operations
-        createUser: async function (token: Token, profile: UserRegisterInfo): Promise<User> {
-            return new Promise<User>((resolve) => {
+        createUser: async function (token: Token, profile: UserRegisterInfo): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -54,7 +54,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 const newUser = { id, username, email, password, role, platform, brand, advertisers: advertiserInfo }
                 mockUsers.push(newUser);
 
-                resolve(lastElement(mockUsers))
+                resolve({ data: lastElement(mockUsers), error: null })
             });
         },
         login: async function (name: string, password: string): Promise<UserPermissionLogin> {
