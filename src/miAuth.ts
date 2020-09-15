@@ -24,32 +24,32 @@ function strapiClientTool(url: string): ClientTool {
     createUser: async function (token: Token, profile: UserRegisterInfo): Promise<result> {
       return new Promise<result>(async (resolve) => {
         if (!profile) {
-          throw new Error("Please provide your user profile.");
+          resolve({ data: null, error: "Please provide your user profile." });
         }
         const { username, email, password, role, platform, advertisers } = profile;
 
         if (!username && !email && !password && !role && !platform && !advertisers) {
-          throw new Error("Please provide username, email, password, role, access, advertiser in profile.");
+          resolve({ data: null, error: "Please provide username, email, password, role, access, advertiser in profile." });
         }
 
         if (typeof (username) != 'string') {
-          throw new Error("Type of username must be string.");
+          resolve({ data: null, error: "Type of username must be string." });
         }
 
         if (!isEmail(email)) {
-          throw new Error("Invalid email format.");
+          resolve({ data: null, error: "Invalid email format." });
         }
 
         if (typeof (password) != 'string') {
-          throw new Error("Type of password must be string.");
+          resolve({ data: null, error: "Type of password must be string." });
         }
 
         if (!isValidKey(role, roleNames)) {
-          throw new Error("Type of role must be string.");
+          resolve({ data: null, error: "Type of role must be string." });
         }
 
         if (!Array.isArray(platform)) {
-          throw new Error("Type of platform must be array.");
+          resolve({ data: null, error: "Type of platform must be array." });
         }
 
         const allRoles: Role[] = await this.listRoles(token);
@@ -78,27 +78,27 @@ function strapiClientTool(url: string): ClientTool {
           const res = _.get(err, ['response', 'data', 'message'], [{}])[0]
           const message = res.messages[0].message
           if (err.response)
-            resolve({ data: null, error: message })
+            resolve({ data: {}, error: message })
           //reject(err)
         })
       });
     },
-    login: async function (name: string, password: string): Promise<UserPermissionLogin> {
-      return new Promise<UserPermissionLogin>(async (resolve, reject) => {
+    login: async function (name: string, password: string): Promise<result> {
+      return new Promise<result>(async (resolve, reject) => {
         if (!name) {
-          throw new Error("Please provide your name, which is email.");
+          resolve({ data: null, error: "Please provide your name, which is email." });
         }
 
         if (!password) {
-          throw new Error("Please provide your password.");
+          resolve({ data: null, error: "Please provide your password." });
         }
 
         if (!isEmail(name)) {
-          throw new Error("Invalid email format.");
+          resolve({ data: null, error: "Invalid email format." });
         }
 
         if (typeof (password) != 'string') {
-          throw new Error("Type of password must be string.");
+          resolve({ data: null, error: "Type of password must be string." })
         }
 
         axios.post('/auth/local', { identifier: name, password })
@@ -113,11 +113,13 @@ function strapiClientTool(url: string): ClientTool {
             const reducedPlatform = _.map(platforms, e => e.name)
             const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
             const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand, advertisers: reducedAdvertiser }
-            resolve({ jwt, user: data })
+            resolve({ data: { jwt, user: data }, error: null })
           })
           .catch(err => {
-            console.log(err)
-            reject(err)
+            const res = _.get(err, ['response', 'data', 'message'], [{}])[0]
+            const message = res.messages[0].message
+            if (err.response)
+              resolve({ data: null, error: message })
           })
       });
     },

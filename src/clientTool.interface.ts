@@ -74,7 +74,7 @@ export interface result {
 
 export interface ClientTool {
     // user operations
-    login(name: string, password: string): Promise<UserPermissionLogin>,
+    login(name: string, password: string): Promise<result>,
     getMe(token: Token): Promise<User>
     createUser(token: Token, profile: UserRegisterInfo): Promise<result>,
     listUsers(token: Token, params: listParams): Promise<User[]>,

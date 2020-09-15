@@ -57,8 +57,8 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve({ data: lastElement(mockUsers), error: null })
             });
         },
-        login: async function (name: string, password: string): Promise<UserPermissionLogin> {
-            return new Promise<UserPermissionLogin>((resolve) => {
+        login: async function (name: string, password: string): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (!name) {
                     throw new Error("Please provide your name, which is email.");
                 }
@@ -75,7 +75,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     throw new Error("Type of password must be string.");
                 }
 
-                resolve({ jwt: mockJwt, user: mockMe })
+                resolve({ data: { jwt: mockJwt, user: mockMe }, error: null })
             });
         },
         getMe: async function (token: Token): Promise<User> {
