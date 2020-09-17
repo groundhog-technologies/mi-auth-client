@@ -75,25 +75,25 @@ export interface result {
 export interface ClientTool {
     // user operations
     login(name: string, password: string): Promise<result>,
-    getMe(token: Token): Promise<User>
+    getMe(token: Token): Promise<result>
     createUser(token: Token, profile: UserRegisterInfo): Promise<result>,
-    listUsers(token: Token, params: listParams): Promise<User[]>,
-    updateUser(token: Token, id: ID, profile: User): Promise<User>,
-    deleteUser(token: Token, id: ID): Promise<boolean>,
+    listUsers(token: Token, params: listParams, options?: sortParams): Promise<result>,
+    updateUser(token: Token, id: ID, profile: User): Promise<result>,
+    deleteUser(token: Token, id: ID): Promise<result>,
     deleteSuperAdmin?(token: Token, brand: ID): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
     listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
-    createBrand(token: Token, profile: updateBrand): Promise<Brand>,
-    listBrands(token: Token, params: Pick<listParams, "ids">): Promise<Brand[]>,
-    updateBrand(token: Token, id: ID, profile: updateBrand): Promise<Brand>,
-    deleteBrand(token: Token, id: ID): Promise<boolean>,
+    createBrand(token: Token, profile: updateBrand): Promise<result>,
+    listBrands(token: Token, params: Pick<listParams, "ids">, options?: sortParams): Promise<result>,
+    updateBrand(token: Token, id: ID, profile: updateBrand): Promise<result>,
+    deleteBrand(token: Token, id: ID): Promise<result>,
     // advertiser operations
-    createAdvertiser(token: Token, profile: updateAdvertiser): Promise<Advertiser>,
-    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">): Promise<Advertiser[]>,
-    updateAdvertiser(token: Token, id: ID, profile: Advertiser): Promise<Advertiser>,
-    deleteAdvertiser(token: Token, id: ID): Promise<boolean>,
+    createAdvertiser(token: Token, profile: updateAdvertiser): Promise<result>,
+    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">, options?: sortParams): Promise<result>,
+    updateAdvertiser(token: Token, id: ID, profile: Advertiser): Promise<result>,
+    deleteAdvertiser(token: Token, id: ID): Promise<result>,
 }
 
 export interface ClientToolParams {
@@ -106,4 +106,12 @@ export interface listParams {
     brands?: ID[],
     advertisers?: ID[],
     roles?: string[]
+}
+
+type sortKey = 'created_at' | 'updated_at' | 'id' | 'name' | 'username'
+type Sort = Map<sortKey, 1 | -1>
+
+export interface sortParams {
+    sort?: Sort,
+    limit?: number
 }

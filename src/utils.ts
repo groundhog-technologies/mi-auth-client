@@ -22,6 +22,11 @@ export const roleNames = {
     'user': 'user'
 }
 
+export const sortSetting = {
+    '1': 'ASC',
+    '-1': 'DESC'
+}
+
 export const isValidKey = <T extends object>(key: string, object: T) => {
     if (Object.keys(object).includes(key)) {
         return true
@@ -54,5 +59,15 @@ export const brands = (token: Token, params: URLSearchParams) => {
     axios('/brands', config).then(res => {
         return res.data
     }).catch(e => console.log(e))
+
+}
+
+export const parseErrorMessage = (errorMessage: any) => {
+    let message = _.get(errorMessage, ['response', 'data', 'message'])
+    console.log(errorMessage)
+    if (typeof (message) == 'string') return message
+
+    message = _.get(message[0], ['response', 'data', ' message'])
+    return message
 
 }

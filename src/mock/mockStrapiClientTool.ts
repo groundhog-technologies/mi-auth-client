@@ -78,16 +78,16 @@ export default function mockStrapiClientTool(): ClientTool {
                 resolve({ data: { jwt: mockJwt, user: mockMe }, error: null })
             });
         },
-        getMe: async function (token: Token): Promise<User> {
-            return new Promise<User>((resolve) => {
+        getMe: async function (token: Token): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
-                resolve(mockMe)
+                resolve({ data: mockMe, error: null })
             });
         },
-        listUsers: async function (token: Token, select: listParams): Promise<User[]> {
-            return new Promise<User[]>((resolve) => {
+        listUsers: async function (token: Token, select: listParams): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (!token) {
                     throw new Error("Please provide your token.");
                 }
@@ -99,23 +99,23 @@ export default function mockStrapiClientTool(): ClientTool {
 
                 if (ids) {
                     const users = mockUsers.filter(e => ids.includes(e.id))
-                    resolve(users)
+                    resolve({ data: users, error: null })
                 }
 
                 if (brands) {
                     const users = mockUsers.filter(e => e.advertisers.find(a => brands.includes(a.brand)))
-                    resolve(users)
+                    resolve({ data: users, error: null })
                 }
                 if (advertisers) {
                     const users = mockUsers.filter(e => e.advertisers.find(a => advertisers.includes(a.id)))
-                    resolve(users)
+                    resolve({ data: users, error: null })
                 }
                 //list all users
-                resolve(mockUsers)
+                resolve({ data: mockUsers, error: null })
             });
         },
-        updateUser: async function (token: Token, id: ID, profile: User): Promise<User> {
-            return new Promise<User>((resolve) => {
+        updateUser: async function (token: Token, id: ID, profile: User): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -151,11 +151,11 @@ export default function mockStrapiClientTool(): ClientTool {
 
                 mockUsers[index] = assignObject(mockUsers[index], profile)
 
-                resolve(mockUsers[index])
+                resolve({ data: mockUsers[index], error: null })
             });
         },
-        deleteUser: async function (token: Token, id: ID): Promise<boolean> {
-            return new Promise<boolean>((resolve) => {
+        deleteUser: async function (token: Token, id: ID): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -167,7 +167,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 catch (err) {
                     throw new Error("Invalid id");
                 }
-                resolve(true)
+                resolve({ data: true, error: null })
             });
         },
         // role operations
@@ -180,8 +180,8 @@ export default function mockStrapiClientTool(): ClientTool {
             });
         },
         // brand operations
-        createBrand: async function (token: Token, profile: updateBrand): Promise<Brand> {
-            return new Promise<Brand>((resolve) => {
+        createBrand: async function (token: Token, profile: updateBrand): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -199,11 +199,11 @@ export default function mockStrapiClientTool(): ClientTool {
                 const advertisersInfo: Advertiser[] = mockAdvertisers.filter(e => profile.advertisers.includes(e.id))
                 mockBrands.push({ id, name, advertisers: advertisersInfo });
 
-                resolve(lastElement(mockBrands))
+                resolve({ data: lastElement(mockBrands), error: null })
             });
         },
-        listBrands: async function (token: Token, select: Pick<listParams, "ids">): Promise<Brand[]> {
-            return new Promise<Brand[]>((resolve) => {
+        listBrands: async function (token: Token, select: Pick<listParams, "ids">): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -211,13 +211,13 @@ export default function mockStrapiClientTool(): ClientTool {
                 const { ids } = select
                 if (ids) {
                     const brand = mockBrands.filter(e => ids.includes(e.id))
-                    resolve(brand)
+                    resolve({ data: brand, error: null })
                 }
-                resolve(mockBrands)
+                resolve({ data: mockBrands, error: null })
             });
         },
-        updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<Brand> {
-            return new Promise<Brand>((resolve) => {
+        updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -226,11 +226,11 @@ export default function mockStrapiClientTool(): ClientTool {
                 const owners = mockUsers.filter(e => e.id == profile.owners[0])
                 mockBrands[index] = assignObject(mockBrands[index], { name: profile.name, owners })
 
-                resolve(mockBrands[index])
+                resolve({ data: mockBrands[index], error: null })
             });
         },
-        deleteBrand: async function (token: Token, id: ID): Promise<boolean> {
-            return new Promise<boolean>((resolve) => {
+        deleteBrand: async function (token: Token, id: ID): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -242,12 +242,12 @@ export default function mockStrapiClientTool(): ClientTool {
                 catch (err) {
                     throw new Error("Invalid id");
                 }
-                resolve(true)
+                resolve({ data: true, error: null })
             });
         },
         // advertiser operations
-        createAdvertiser: async function (token: Token, profile: updateAdvertiser): Promise<Advertiser> {
-            return new Promise<Advertiser>((resolve) => {
+        createAdvertiser: async function (token: Token, profile: updateAdvertiser): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -269,11 +269,11 @@ export default function mockStrapiClientTool(): ClientTool {
                 const id = lastElement(mockAdvertisers).id + 1;
                 const users: User[] = mockUsers.filter(e => profile.users.includes(e.id))
                 mockAdvertisers.push({ id, name, brand, users });
-                resolve(lastElement(mockAdvertisers))
+                resolve({ data: lastElement(mockAdvertisers), error: null })
             });
         },
-        listAdvertisers: async function (token: Token, select: Pick<listParams, "brands" | "ids">): Promise<Advertiser[]> {
-            return new Promise<Advertiser[]>((resolve) => {
+        listAdvertisers: async function (token: Token, select: Pick<listParams, "brands" | "ids">): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -282,17 +282,17 @@ export default function mockStrapiClientTool(): ClientTool {
 
                 if (ids) {
                     const advertiser = mockAdvertisers.filter(e => ids.includes(e.id))
-                    resolve(advertiser)
+                    resolve({ data: advertiser, error: null })
                 }
                 if (brands) {
                     const advertiser = mockAdvertisers.filter(e => brands.includes(e.brand))
-                    resolve(advertiser)
+                    resolve({ data: advertiser, error: null })
                 }
-                resolve(mockAdvertisers)
+                resolve({ data: mockAdvertisers, error: null })
             });
         },
-        updateAdvertiser: async function (token: Token, id: ID, profile: Advertiser): Promise<Advertiser> {
-            return new Promise<Advertiser>((resolve) => {
+        updateAdvertiser: async function (token: Token, id: ID, profile: Advertiser): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -300,11 +300,11 @@ export default function mockStrapiClientTool(): ClientTool {
                 const index = mockAdvertisers.indexOf(advertiser);
                 mockAdvertisers[index] = assignObject(mockAdvertisers[index], profile);
 
-                resolve(mockAdvertisers[index]);
+                resolve({ data: mockAdvertisers[index], error: null });
             });
         },
-        deleteAdvertiser: async function (token: Token, id: ID): Promise<boolean> {
-            return new Promise<boolean>((resolve) => {
+        deleteAdvertiser: async function (token: Token, id: ID): Promise<result> {
+            return new Promise<result>((resolve) => {
                 if (token != 'strapi_mock_token') {
                     throw new Error("Invalid token.");
                 }
@@ -316,7 +316,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 catch (err) {
                     throw new Error("Invalid id.");
                 }
-                resolve(true)
+                resolve({ data: true, error: null })
             });
         },
     }
