@@ -64,10 +64,9 @@ export const brands = (token: Token, params: URLSearchParams) => {
 
 export const parseErrorMessage = (errorMessage: any) => {
     let message = _.get(errorMessage, ['response', 'data', 'message'])
-    console.log(errorMessage)
     if (typeof (message) == 'string') return message
 
-    message = _.get(message[0], ['response', 'data', ' message'])
+    message = message[0].messages[0].message
     return message
 
 }
