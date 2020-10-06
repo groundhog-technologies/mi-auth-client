@@ -211,10 +211,6 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>(async (resolve, reject) => {
         const { username, email, password, role, platform } = profile;
 
-        if (username) {
-          resolve({ data: null, error: "username cannot be updated" });
-        }
-
         if (email) {
           resolve({ data: null, error: "email cannot be updated." });
         }
