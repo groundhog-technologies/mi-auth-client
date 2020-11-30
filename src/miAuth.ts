@@ -173,9 +173,9 @@ function strapiClientTool(url: string): ClientTool {
         }
 
         if (options) {
-          const { limit = 1000, sort = {} } = options
+          const { limit, sort = {} } = options
           let sortFilter: string[] = []
-          params.append('_limit', limit.toString())
+          if (limit) params.append('_limit', limit.toString())
           _.keys(sort).forEach(e => {
             sortFilter.push(`${e}:${sortSetting[sort[e]]}`)
           })
@@ -335,9 +335,9 @@ function strapiClientTool(url: string): ClientTool {
         }
 
         if (options) {
-          const { limit = 1000, sort = {} } = options
+          const { limit, sort = {} } = options
           let sortFilter: string[] = []
-          params.append('_limit', limit.toString())
+          if (limit) params.append('_limit', limit.toString())
           _.keys(sort).forEach(e => {
             sortFilter.push(`${e}:${sortSetting[sort[e]]}`)
           })
@@ -432,7 +432,7 @@ function strapiClientTool(url: string): ClientTool {
             brand: data.brand,
             users: data.users.map((e: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = e
-              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+              return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
             })
           }
           resolve({ data, error: null })
@@ -458,9 +458,9 @@ function strapiClientTool(url: string): ClientTool {
         }
 
         if (options) {
-          const { limit = 1000, sort = {} } = options
+          const { limit, sort = {} } = options
           let sortFilter: string[] = []
-          params.append('_limit', limit.toString())
+          if (limit) params.append('_limit', limit.toString())
           _.keys(sort).forEach(e => {
             sortFilter.push(`${e}:${sortSetting[sort[e]]}`)
           })
@@ -478,7 +478,7 @@ function strapiClientTool(url: string): ClientTool {
               brand: e.brand,
               users: e.users.map((user: { id: any; email: any; username: any; role: any; }) => {
                 let { id, email, username, role } = user
-                return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+                return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
               })
             })
           })
@@ -500,7 +500,7 @@ function strapiClientTool(url: string): ClientTool {
             brand: data.brand,
             users: data.users.map((user: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = user
-              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+              return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
             })
           }
           resolve({ data, error: null })
