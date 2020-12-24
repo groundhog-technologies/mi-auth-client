@@ -80,7 +80,8 @@ export interface ClientTool {
     listUsers(token: Token, params: listParams, options?: sortParams): Promise<result>,
     updateUser(token: Token, id: ID, profile: User): Promise<result>,
     deleteUser(token: Token, id: ID): Promise<result>,
-    deleteSuperAdmin?(token: Token, brand: ID): void
+    deleteSuperAdmin?(token: Token, brand: ID, advertisers: ID[]): void
+    addBrandOwner?(token: Token, owner: ID[], advertisers: ID[]): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
     listPlatforms?(token: Token): Promise<Platform[]>,

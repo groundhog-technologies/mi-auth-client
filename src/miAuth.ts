@@ -13,14 +13,21 @@ function strapiClientTool(url: string): ClientTool {
 
   return {
     // user operations
+    addBrandOwner: async function (token: Token, owners: number[], advertisers: number[]): Promise<void> {
+      const { data: superAdmins }: { data: User[] } = await this.listUsers(token, { ids: owners })
+      superAdmins.forEach(user => {
+        this.updateUser(token, user.id, { advertisers: _.concat(user.advertisers.map(e => e.id), advertisers) })
+      })
+    },
     deleteSuperAdmin: async function (token: Token, brand: number): Promise<void> {
-      const superAdmins = await this.listUsers(token, { brands: [brand], roles: ['superAdmin'] })
+      const { data: superAdmins } = await this.listUsers(token, { brands: [brand], roles: ['superAdmin'] })
+      const { data: advertisers } = await this.listAdvertisers(token, { brands: [brand] })
       await Promise.all[
-        superAdmins.data.forEach((e: { id: any; }) => {
-          this.updateUser(token, e.id, { advertisers: [] })
+        superAdmins.forEach((e: { id: any, advertisers: Advertiser[] }) => {
+          const updatedAdvertisers = _.filter(e.advertisers, advertiser => (!advertisers.includes(advertiser.id)))
+          this.updateUser(token, e.id, { advertisers: updatedAdvertisers.map(e => e.id) })
         })]
     },
-
     createUser: async function (token: Token, profile: UserRegisterInfo): Promise<result> {
       return new Promise<result>(async (resolve) => {
         if (!profile) {
@@ -307,16 +314,10 @@ function strapiClientTool(url: string): ClientTool {
         if (typeof (name) != 'string') {
           resolve({ data: null, error: "Invalid type of name" });
         }
-
+        // create brand
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.post<Brand>('/brands', profile, config).then(async res => {
           const { id, name, advertisers } = res.data;
-          if (owners.length) {
-            const advertisers = await this.listAdvertisers(token, { brands: [id] })
-            owners.forEach(owner => {
-              this.updateUser(token, owner, { advertisers: advertisers.data.map((e: { id: any; }) => e.id) })
-            })
-          }
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
@@ -377,21 +378,17 @@ function strapiClientTool(url: string): ClientTool {
     },
     updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<result> {
       const { name, owners, advertisers } = profile
-      // update owner
-      if (owners && owners.length) {
-        await this.deleteSuperAdmin(token, id)
-        const advertisers = await this.listAdvertisers(token, { brands: [id] })
-        owners.forEach(async owner => {
-          await this.updateUser(token, owner, { advertisers: advertisers.data.map((e: { id: any; }) => e.id) })
-        })
-      } else if (owners && owners.length == 0) {
-        await this.deleteSuperAdmin(token, id)
-      }
+      // remove owner
+      await this.deleteSuperAdmin(token, id)
       // update brand
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        axios.put<Brand>(`/brands/${id}`, { name, advertisers }, config).then(res => {
+        axios.put<Brand>(`/brands/${id}`, { name, advertisers }, config).then(async res => {
           const { id, name, advertisers } = res.data;
+
+          //add owner
+          await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
+
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
