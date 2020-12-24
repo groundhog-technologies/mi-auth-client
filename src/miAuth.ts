@@ -379,7 +379,7 @@ function strapiClientTool(url: string): ClientTool {
     updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<result> {
       const { name, owners, advertisers } = profile
       // remove owner
-      await this.deleteSuperAdmin(token, id)
+      if (owners) await this.deleteSuperAdmin(token, id)
       // update brand
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -387,7 +387,7 @@ function strapiClientTool(url: string): ClientTool {
           const { id, name, advertisers } = res.data;
 
           //add owner
-          await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
+          if (owners) await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
 
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
