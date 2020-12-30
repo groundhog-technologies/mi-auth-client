@@ -180,9 +180,9 @@ function strapiClientTool(url: string): ClientTool {
         }
 
         if (options) {
-          const { limit, sort = {} } = options
+          const { limit = -1, sort = {} } = options
           let sortFilter: string[] = []
-          if (limit) params.append('_limit', limit.toString())
+          params.append('_limit', limit.toString())
           _.keys(sort).forEach(e => {
             sortFilter.push(`${e}:${sortSetting[sort[e]]}`)
           })
