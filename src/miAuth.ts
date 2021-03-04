@@ -353,8 +353,8 @@ function strapiClientTool(url: string): ClientTool {
           const superAdmins: StrapiUser[] = await users(token, params)
           res.data.forEach(async e => {
             let owners = superAdmins.filter(o => {
-              const ad = o.advertisers[0] ? o.advertisers[0] : { brand: -1 }
-              return ad.brand == e.id
+              const ad = o.advertisers.map(v => v.brand)
+              return ad.includes(e.id)
             })
             const owner: BrandOwner[] = owners ?
               owners.map(o => {

@@ -7,7 +7,7 @@ export interface StrapiUser {
     password: string,
     email: string,
     role: StrapiRole,
-    advertisers: StrapiAdvertiser,
+    advertisers: StrapiUserAdvertiser[],
     platforms: StrapiPlatform[]
 }
 
@@ -28,7 +28,12 @@ export interface StrapiBrand {
     name: string
     advertisers: ID[]
 }
-
+export interface StrapiUserAdvertiser {
+    id: ID
+    name: string
+    users: StrapiUser[]
+    brand: ID
+}
 export interface StrapiAdvertiser {
     id: ID
     name: string
