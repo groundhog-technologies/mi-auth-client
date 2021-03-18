@@ -114,9 +114,9 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid token" })
                 }
 
-                const { ids, brands, advertisers } = select;
+                const { ids = [], brands, advertisers } = select;
 
-                if (ids) {
+                if (ids.length != 0) {
                     const users = mockUsers.filter(e => ids.includes(e.id))
                     resolve({ data: users, error: null })
                 }
@@ -370,13 +370,13 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid token" })
                 }
 
-                const { ids, brands } = select
+                const { ids = [], brands = [] } = select
 
-                if (ids) {
+                if (ids.length != 0) {
                     const advertiser = mockAdvertisers.filter(e => ids.includes(e.id))
                     resolve({ data: advertiser, error: null })
                 }
-                if (brands) {
+                if (brands.length != 0) {
                     const advertiser = mockAdvertisers.filter(e => brands.includes(e.brand))
                     resolve({ data: advertiser, error: null })
                 }
