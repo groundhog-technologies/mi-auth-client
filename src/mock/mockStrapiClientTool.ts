@@ -92,7 +92,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Type of password must be string." })
                 }
 
-                const index = mockUsers.findIndex(e => e.username == name)
+                const index = mockUsers.findIndex(e => e.email == name)
                 mockMe = mockUsers[index]
                 resolve({ data: { jwt: mockJwt, user: mockMe }, error: null })
             });
