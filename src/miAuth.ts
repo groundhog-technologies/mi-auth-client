@@ -1,10 +1,11 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result, sortParams } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result, sortParams, updateUser } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey, setUrl, users, sortSetting, parseErrorMessage } from './utils';
 import * as _ from 'lodash'
 import { identity, camelCase } from 'lodash';
 import { StrapiUser } from './strapi.interface';
+import db from './mock/sql'
 
 
 function strapiClientTool(url: string): ClientTool {
@@ -214,13 +215,9 @@ function strapiClientTool(url: string): ClientTool {
         })
       });
     },
-    updateUser: async function (token: Token, id: ID, profile: User): Promise<result> {
+    updateUser: async function (token: Token, id: ID, profile: updateUser): Promise<result> {
       return new Promise<result>(async (resolve, reject) => {
-        const { username, email, password, role, platform } = profile;
-
-        if (email) {
-          resolve({ data: null, error: "email cannot be updated." });
-        }
+        const { username, password, role, platform } = profile;
 
         if (password && typeof (password) != 'string') {
           resolve({ data: null, error: "Type of password must be string." });
@@ -485,7 +482,7 @@ function strapiClientTool(url: string): ClientTool {
         })
       });
     },
-    updateAdvertiser: async function (token: Token, id: ID, profile: Advertiser): Promise<result> {
+    updateAdvertiser: async function (token: Token, id: ID, profile: updateAdvertiser): Promise<result> {
       return new Promise<result>(async (resolve, reject) => {
         const roles = await this.listRoles(token);
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -522,6 +519,9 @@ function strapiClientTool(url: string): ClientTool {
 
 export default function createClientTool(setting: ClientToolParams): ClientTool {
   const { mock = false, url } = setting;
-  if (mock) return mockStrapiClientTool();
-  return strapiClientTool(url);
+  if (mock) {
+    return mockStrapiClientTool()
+  };
+
+  if (!mock) return strapiClientTool(url);
 }

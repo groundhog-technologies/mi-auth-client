@@ -10,6 +10,14 @@ export interface UserRegisterInfo {
     advertisers?: ID[],
 }
 
+export interface updateUser {
+    username: string,
+    role: string,
+    platform: string[],
+    password?: string,
+    brand?: number[],
+    advertisers?: number[],
+}
 export interface User {
     id?: ID,
     username: string,
@@ -17,7 +25,7 @@ export interface User {
     role: string,
     platform: string[],
     password?: string,
-    brand: Brand[],
+    brand?: Brand[],
     advertisers?: Advertiser[],
 }
 
@@ -39,7 +47,14 @@ export interface Brand {
     owners?: BrandOwner[]
 }
 
-export type BrandOwner = Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">> | []
+export type BrandOwner = {
+    id?: ID,
+    username?: string,
+    email?: string,
+    role?: string,
+    platform?: string[]
+}
+//Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">> | []
 
 export interface updateBrand {
     id?: ID,
@@ -78,7 +93,7 @@ export interface ClientTool {
     getMe(token: Token): Promise<result>
     createUser(token: Token, profile: UserRegisterInfo): Promise<result>,
     listUsers(token: Token, params: listParams, options?: sortParams): Promise<result>,
-    updateUser(token: Token, id: ID, profile: User): Promise<result>,
+    updateUser(token: Token, id: ID, profile: updateUser): Promise<result>,
     deleteUser(token: Token, id: ID): Promise<result>,
     deleteSuperAdmin?(token: Token, brand: ID, advertisers: ID[]): void
     addBrandOwner?(token: Token, owner: ID[], advertisers: ID[]): void
@@ -93,7 +108,7 @@ export interface ClientTool {
     // advertiser operations
     createAdvertiser(token: Token, profile: updateAdvertiser): Promise<result>,
     listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">, options?: sortParams): Promise<result>,
-    updateAdvertiser(token: Token, id: ID, profile: Advertiser): Promise<result>,
+    updateAdvertiser(token: Token, id: ID, profile: updateAdvertiser): Promise<result>,
     deleteAdvertiser(token: Token, id: ID): Promise<result>,
 }
 

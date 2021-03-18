@@ -2,23 +2,23 @@ import { Advertiser, Brand, Role, User, Platform } from "../clientTool.interface
 
 export const mockJwt = "strapi_mock_token";
 
-export const mockMe: User = {
+export let mockMe: User = {
     "id": 42,
-    "username": "post",
-    "email": "post@ghtinc.com",
-    "role": "user",
+    "username": "root",
+    "email": "root@ghtinc.com",
+    "role": "root",
     "platform": ["DMP", "DSP"],
     "brand": [{ "id": 4, "name": "robi" }],
     "advertisers": [
         {
             "id": 7,
-            "name": "MOS2",
+            "name": "MOS",
             "brand": 4,
         }
     ]
 };
 
-export const mockUsers: User[] = [
+export let mockUsers: User[] = [
     {
         "id": 44,
         "username": "dspuser",
@@ -36,9 +36,9 @@ export const mockUsers: User[] = [
     },
     {
         "id": 43,
-        "username": "post",
-        "email": "post@ghtinc.com",
-        "role": "user",
+        "username": "root",
+        "email": "root@ghtinc.com",
+        "role": "root",
         "platform": ["DMP", "DSP"],
         "brand": [{ "id": 4, "name": "robi" }],
         "advertisers": [
@@ -74,25 +74,41 @@ export const mockRoles: Role[] = [
     }
 ];
 
-export const mockBrands: Brand[] = [
+export let mockBrands: Brand[] = [
     {
         "id": 4,
-        "name": "robi",
+        "name": "ghtinc",
         "advertisers": [
             {
                 "id": 7,
-                "name": "MOS5",
+                "name": "MOS",
                 "brand": 4,
             }
-        ]
+        ],
+        "owners": []
     }
 ];
 
-export const mockAdvertisers: Advertiser[] = [
+export let mockAdvertisers: Advertiser[] = [
     {
         "id": 7,
-        "name": "MOS5",
+        "name": "MOS",
         "brand": 4,
+        "users": [{
+            "id": 44,
+            "username": "dspuser",
+            "email": "dspuser@ghtinc.com",
+            "role": "user",
+            "platform": ["DMP", "DSP"],
+            "brand": [{ "id": 4, "name": "robi" }]
+        }, {
+            "id": 43,
+            "username": "root",
+            "email": "root@ghtinc.com",
+            "role": "root",
+            "platform": ["DMP", "DSP"],
+            "brand": [{ "id": 4, "name": "robi" }],
+        }]
     }
 ];
 
