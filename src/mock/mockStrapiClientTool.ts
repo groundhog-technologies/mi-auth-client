@@ -50,7 +50,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Type of platform must be array." })
                 }
 
-                const id = lastElement(mockUsers).id + 1;
+                const id = R.reduce((a, b) => a > b ? a : b, 0, mockUsers.map(e => e.id)) + 1
                 const advertiserInfo = mockAdvertisers.filter((e) => advertisers.includes(e.id));
                 const brand: Brand[] = [];
                 const newUser = { id, username, email, password, role, platform, brand, advertisers: advertiserInfo }
@@ -346,7 +346,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 const id = lastElement(mockAdvertisers).id + 1;
                 const users: User[] = mockUsers.filter(e => profile.users.includes(e.id) ||
                     e.brand.map(e => e.id).includes(brand) &&
-                    (e.role == 'root' || e.role == 'superAdmin'))
+                    (e.role == 'root' || e.role == 'superAsdmin'))
                 const advertiser = { id, name, brand, users: users }
                 mockAdvertisers.push(advertiser);
                 mockUsers = mockUsers.map(e => {
