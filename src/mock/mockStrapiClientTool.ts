@@ -329,9 +329,9 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid token" })
                 }
 
-                const { name, brand } = profile;
+                let { name, brand } = profile;
 
-                if (!name && brand) {
+                if (!name) {
                     resolve({ data: null, error: "Please provie name, and brand in profile" })
                 }
 
@@ -339,14 +339,14 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid type of name" })
                 }
 
-                if (typeof (brand) != 'number') {
+                if (brand && typeof (brand) != 'number') {
                     resolve({ data: null, error: "Invalid type of brand" })
                 }
 
                 const id = lastElement(mockAdvertisers).id + 1;
                 const users: User[] = mockUsers.filter(e => profile.users.includes(e.id) ||
                     e.brand.map(e => e.id).includes(brand) &&
-                    (e.role == 'root' || e.role == 'super_admin'))
+                    (e.role == 'root' || e.role == 'superAdmin'))
                 const advertiser = { id, name, brand, users: users }
                 mockAdvertisers.push(advertiser);
                 mockUsers = mockUsers.map(e => {
@@ -371,7 +371,6 @@ export default function mockStrapiClientTool(): ClientTool {
                 }
 
                 const { ids = [], brands = [] } = select
-                console.log('mock', ids, brands)
                 if (ids.length != 0) {
                     const advertiser = mockAdvertisers.filter(e => ids.includes(e.id))
                     resolve({ data: advertiser, error: null })
