@@ -256,7 +256,7 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid token" })
                 }
 
-                const { name, advertisers = [] } = profile
+                const { name, advertisers = [], owners = [] } = profile
                 if (!name) {
                     resolve({ data: null, error: "Please provie name in profile" })
                 }
@@ -265,9 +265,16 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid type of name" })
                 }
 
-                const id = lastElement(mockBrands).id + 1;
-                const advertisersInfo: Advertiser[] = mockAdvertisers.filter(e => profile.advertisers.includes(e.id)).map(R.pick(['id', 'name', 'brand']))
-                mockBrands.push({ id, name, advertisers: advertisersInfo, owners: [] });
+                const id = R.reduce((a, b) => a > b ? a : b, 0, mockBrands.map(e => e.id)) + 1;
+                const advertisersInfo: Advertiser[] = mockAdvertisers.filter(e => profile.advertisers.includes(e.id)).map(e => { return { id: e.id, name: e.name, brand: id } })
+                const ownersInfo = mockUsers.filter(e => owners.includes(e.id))
+                mockBrands.push({ id, name, advertisers: advertisersInfo, owners: ownersInfo });
+
+                // add advertiser to brand
+                mockAdvertisers = mockAdvertisers.map(e => {
+                    if (advertisers.includes(e.id)) e.brand = id
+                    return e
+                })
 
                 resolve({ data: lastElement(mockBrands), error: null })
             });
@@ -332,7 +339,7 @@ export default function mockStrapiClientTool(): ClientTool {
                 let { name, brand } = profile;
 
                 if (!name) {
-                    resolve({ data: null, error: "Please provie name, and brand in profile" })
+                    resolve({ data: null, error: "Please provie name in profile" })
                 }
 
                 if (typeof (name) != 'string') {
@@ -343,24 +350,29 @@ export default function mockStrapiClientTool(): ClientTool {
                     resolve({ data: null, error: "Invalid type of brand" })
                 }
 
-                const id = lastElement(mockAdvertisers).id + 1;
+                // add advertiser to user
                 const users: User[] = mockUsers.filter(e => profile.users.includes(e.id) ||
-                    e.brand.map(e => e.id).includes(brand) &&
-                    (e.role == 'root' || e.role == 'superAsdmin'))
+                    e.role == 'root' ||
+                    (e.brand.map(e => e.id).includes(brand) &&
+                        e.role == 'superAdmin'))
+                const id = R.reduce((a, b) => a > b ? a : b, 0, mockAdvertisers.map(e => e.id)) + 1
                 const advertiser = { id, name, brand, users: users }
-                mockAdvertisers.push(advertiser);
+
                 mockUsers = mockUsers.map(e => {
-                    if (users.map(e => e.id).includes(e.id)) return e
-                    e.advertisers.push(R.pick(['name', 'brand', 'id'], advertiser))
+                    if (users.map(e => e.id).includes(e.id))
+                        e.advertisers.push(R.pick(['name', 'brand', 'id'], advertiser))
                     return e
                 })
+
+                // create new advertiser
+                mockAdvertisers.push(advertiser);
 
                 // add advertiser to brand
                 mockBrands = mockBrands.map(e => {
                     if (e.id == profile.brand) e.advertisers.push(R.pick(['id', 'name', 'brand'], advertiser))
                     return e
                 })
-                resolve({ data: lastElement(mockAdvertisers), error: null })
+                resolve({ data: advertiser, error: null })
             });
         },
         listAdvertisers: async function (token: Token, select: Pick<listParams, "brands" | "ids">): Promise<result> {

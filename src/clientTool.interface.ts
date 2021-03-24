@@ -34,9 +34,15 @@ export interface UserPermissionLogin {
     user: User
 }
 
+export interface updateRole {
+    id: ID,
+    name: string,
+    permissions: string[]
+}
 export interface Role {
     id: ID,
     name: string,
+    permissions?: Object[],
     nb_users?: number
 }
 
@@ -99,6 +105,9 @@ export interface ClientTool {
     addBrandOwner?(token: Token, owner: ID[], advertisers: ID[]): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
+    createRole?(token: Token, params: updateRole): Promise<result>,
+    updateRole?(token: Token, params: updateRole): Promise<result>,
+    deleteRole?(token: Token, id: ID): Promise<result>
     listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
     createBrand(token: Token, profile: updateBrand): Promise<result>,

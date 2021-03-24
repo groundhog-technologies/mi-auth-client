@@ -1,10 +1,11 @@
-import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result, sortParams, updateUser } from './clientTool.interface';
+import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result, sortParams, updateUser, updateRole } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey, setUrl, users, sortSetting, parseErrorMessage } from './utils';
 import * as _ from 'lodash'
 import { identity, camelCase } from 'lodash';
 import { StrapiUser } from './strapi.interface';
+import * as R from 'ramda'
 import db from './mock/sql'
 
 
@@ -64,7 +65,7 @@ function strapiClientTool(url: string): ClientTool {
         const allPlatforms: Platform[] = await this.listPlatforms(token);
 
         const data: any = profile;
-        data.role = _.find(allRoles, e => e.name == roleNames[role]).id;
+        data.role = _.find(allRoles, e => e.name == role).id;
         data.platforms = _.map(_.filter(allPlatforms, e => { return platform.includes(e.name) }), e => e.id)
 
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -235,7 +236,7 @@ function strapiClientTool(url: string): ClientTool {
 
         if (role) {
           const allRoles: Role[] = await this.listRoles(token);
-          data.role = _.find(allRoles, e => e.name == roleNames[role]).id;
+          data.role = _.find(allRoles, e => e.name == role).id;
         }
 
         if (platform) {
@@ -279,12 +280,53 @@ function strapiClientTool(url: string): ClientTool {
           headers: { Authorization: `Bearer ${token}` }
         };
         axios.get<{ roles: Role[] }>('/users-permissions/roles', config).then(res => {
-          resolve(res.data.roles)
+          resolve(res.data.roles.map(e => {
+            return { name: camelCase(e.name), ...e }
+          }))
+        }).catch(err => {
+          console.log(parseErrorMessage(err))
+          reject(err)
+        })
+      });
+    },
+    createRole: async function (token: Token, params: updateRole): Promise<result> {
+      return new Promise<result>((resolve, reject) => {
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        axios.post<{ role: Role }>('/users-permissions/roles', R.omit(['id'], params), config).then(res => {
+          resolve({ data: res.data.role, error: null })
+        }).catch(err => {
+          resolve({ data: null, error: err.response.data.message[0].messages })
+          //reject(err)
+        })
+      })
+    },
+    updateRole: async function (token: Token, params: updateRole): Promise<result> {
+      return new Promise<result>((resolve, reject) => {
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        axios.put<{ role: Role[] }>(`/users-permissions/roles/${params.id}`, R.omit(['id'], params), config).then(res => {
+          resolve({ data: res.data.role, error: null })
         }).catch(err => {
           console.log(err)
           reject(err)
         })
-      });
+      })
+    },
+    deleteRole: async function (token: Token, id: ID): Promise<result> {
+      return new Promise<result>((resolve, reject) => {
+        const config: AxiosRequestConfig = {
+          headers: { Authorization: `Bearer ${token}` }
+        };
+        axios.delete<{ role: Role[] }>(`/users-permissions/roles/${id}`, config).then(res => {
+          resolve({ data: res.data.role, error: null })
+        }).catch(err => {
+          console.log(err)
+          reject(err)
+        })
+      })
     },
     // platform operations
     listPlatforms: async function (token: Token): Promise<Platform[]> {
@@ -384,7 +426,7 @@ function strapiClientTool(url: string): ClientTool {
           const { id, name, advertisers } = res.data;
 
           //add owner
-          if (owners) await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
+          if (owners && owners.length != 0) await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
 
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
@@ -426,7 +468,7 @@ function strapiClientTool(url: string): ClientTool {
             brand: data.brand,
             users: data.users.map((e: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = e
-              return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
+              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
             })
           }
           resolve({ data, error: null })
@@ -472,7 +514,7 @@ function strapiClientTool(url: string): ClientTool {
               brand: e.brand,
               users: e.users.map((user: { id: any; email: any; username: any; role: any; }) => {
                 let { id, email, username, role } = user
-                return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
+                return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
               })
             })
           })
@@ -494,7 +536,7 @@ function strapiClientTool(url: string): ClientTool {
             brand: data.brand,
             users: data.users.map((user: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = user
-              return { id, email, username, role: camelCase(roles.find((i: { id: any; }) => role == i.id).name) }
+              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
             })
           }
           resolve({ data, error: null })

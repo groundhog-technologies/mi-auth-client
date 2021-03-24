@@ -25,11 +25,11 @@ export let mockUsers: User[] = [
         "email": "dspuser@ghtinc.com",
         "role": "user",
         "platform": ["DMP", "DSP"],
-        "brand": [{ "id": 4, "name": "robi" }],
+        "brand": [{ "id": 4, "name": "ghtinc" }],
         "advertisers": [
             {
                 "id": 7,
-                "name": "MOS5",
+                "name": "MOS",
                 "brand": 4,
             }
         ]
@@ -40,11 +40,11 @@ export let mockUsers: User[] = [
         "email": "root@ghtinc.com",
         "role": "root",
         "platform": ["DMP", "DSP"],
-        "brand": [{ "id": 4, "name": "robi" }],
+        "brand": [{ "id": 4, "name": "ghtinc" }],
         "advertisers": [
             {
                 "id": 7,
-                "name": "MOS5",
+                "name": "MOS",
                 "brand": 4,
             }
         ]
@@ -100,14 +100,14 @@ export let mockAdvertisers: Advertiser[] = [
             "email": "dspuser@ghtinc.com",
             "role": "user",
             "platform": ["DMP", "DSP"],
-            "brand": [{ "id": 4, "name": "robi" }]
+            "brand": [{ "id": 4, "name": "ghtinc" }]
         }, {
             "id": 43,
             "username": "root",
             "email": "root@ghtinc.com",
             "role": "root",
             "platform": ["DMP", "DSP"],
-            "brand": [{ "id": 4, "name": "robi" }],
+            "brand": [{ "id": 4, "name": "ghtinc" }],
         }]
     }
 ];
