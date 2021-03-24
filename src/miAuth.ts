@@ -23,10 +23,10 @@ function strapiClientTool(url: string): ClientTool {
     },
     deleteSuperAdmin: async function (token: Token, brand: number): Promise<void> {
       const { data: superAdmins } = await this.listUsers(token, { brands: [brand], roles: ['superAdmin'] })
-      const { data: advertisers } = await this.listAdvertisers(token, { brands: [brand] })
+      const { data: advertisers }: { data: Advertiser[] } = await this.listAdvertisers(token, { brands: [brand] })
       await Promise.all[
         superAdmins.forEach((e: { id: any, advertisers: Advertiser[] }) => {
-          const updatedAdvertisers = _.filter(e.advertisers, advertiser => (!advertisers.includes(advertiser.id)))
+          const updatedAdvertisers = _.filter(e.advertisers, advertiser => (!advertisers.map(e => e.id).includes(advertiser.id)))
           this.updateUser(token, e.id, { advertisers: updatedAdvertisers.map(e => e.id) })
         })]
     },
