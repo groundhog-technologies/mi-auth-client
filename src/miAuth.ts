@@ -236,7 +236,7 @@ function strapiClientTool(url: string): ClientTool {
 
         if (role) {
           const allRoles: Role[] = await this.listRoles(token);
-          data.role = _.find(allRoles, e => e.name == role).id;
+          data.role = _.find(allRoles, e => camelCase(e.name) == role).id;
         }
 
         if (platform) {
