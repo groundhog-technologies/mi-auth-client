@@ -1,10 +1,8 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import { Token, listParams } from './clientTool.interface';
-import { User } from './clientTool.interface';
-import { resolve } from 'path';
 import { StrapiUser } from './strapi.interface';
-import { reject } from 'lodash';
+import * as R from 'ramda';
 
 export const isEmail = function (email: string) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -19,7 +17,19 @@ export const roleNames = {
     'root': 'root',
     'superAdmin': 'super_admin',
     'admin': 'admin',
-    'user': 'user'
+    'user': 'user',
+    'manager': 'agency'
+}
+
+export const roleNames2GUI = (role: string) => {
+    const mappingTable = {
+        'root': 'root',
+        'super_admin': 'superAdmin',
+        'admin': 'admin',
+        'user': 'user',
+        'agency': 'manager'
+    }
+    return mappingTable[role] || role
 }
 
 export const sortSetting = {
@@ -66,7 +76,7 @@ export const parseErrorMessage = (errorMessage: any) => {
     let message = _.get(errorMessage, ['response', 'data', 'message'])
     if (typeof (message) == 'string') return message
 
-    message = message[0].messages[0].message
+    message = _.get(message, ['message', 0, 'messages', 0])
     return message
 
 }
