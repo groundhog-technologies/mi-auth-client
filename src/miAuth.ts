@@ -81,7 +81,7 @@ function strapiClientTool(url: string): ClientTool {
           });
 
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
-          const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
+          const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
           resolve({ data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
@@ -117,7 +117,7 @@ function strapiClientTool(url: string): ClientTool {
             const brand = brandIds.size == 0 ? [] : await this.listBrands(jwt, { ids: Array.from(brandIds) })
             const reducedPlatform = _.map(platforms, e => e.name)
             const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
-            const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand: brand.data, advertisers: reducedAdvertiser }
+            const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers: reducedAdvertiser }
             resolve({ data: { jwt, user: data }, error: null })
           })
           .catch(err => {
@@ -144,7 +144,7 @@ function strapiClientTool(url: string): ClientTool {
             platforms.forEach((e: { name: string; }) => {
               reducedPlatform.push(e.name)
             });
-            const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
+            const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
             resolve({ data, error: null })
           })
           .catch(err => {
@@ -207,7 +207,7 @@ function strapiClientTool(url: string): ClientTool {
             });
 
             const brand = allBrands.data.filter((e: { id: number; }) => Array.from(brandIds).includes(e.id))
-            data.push({ id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand, advertisers })
+            data.push({ id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand, advertisers })
 
           });
           resolve({ data, error: null })
@@ -256,7 +256,7 @@ function strapiClientTool(url: string): ClientTool {
             reducedPlatform.push(e.name)
           });
           const brand = brandIds.size == 0 ? [] : await this.listBrands(token, { ids: Array.from(brandIds) })
-          const data: User = { id, email, username, role: camelCase(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
+          const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
           resolve({ data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
@@ -401,7 +401,7 @@ function strapiClientTool(url: string): ClientTool {
                   username: o.username,
                   email: o.email,
                   id: o.id,
-                  role: camelCase(o.role.name),
+                  role: roleNames2GUI(o.role.name),
                   platform: o.platforms.map(e => e.name)
                 }
               }) : []
