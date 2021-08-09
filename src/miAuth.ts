@@ -21,11 +21,27 @@ function strapiClientTool(url: string): ClientTool {
         this.updateUser(token, user.id, { advertisers: _.concat(user.advertisers.map(e => e.id), advertisers) })
       })
     },
+    // user operations
+    addBrandManager: async function (token: Token, manager: number[], advertisers: number[]): Promise<void> {
+      const { data: superAdmins }: { data: User[] } = await this.listUsers(token, { ids: manager })
+      superAdmins.forEach(user => {
+        this.updateUser(token, user.id, { advertisers: _.concat(user.advertisers.map(e => e.id), advertisers) })
+      })
+    },
     deleteSuperAdmin: async function (token: Token, brand: number): Promise<void> {
       const { data: superAdmins } = await this.listUsers(token, { brands: [brand], roles: ['superAdmin'] })
       const { data: advertisers }: { data: Advertiser[] } = await this.listAdvertisers(token, { brands: [brand] })
       await Promise.all[
         superAdmins.forEach((e: { id: any, advertisers: Advertiser[] }) => {
+          const updatedAdvertisers = _.filter(e.advertisers, advertiser => (!advertisers.map(e => e.id).includes(advertiser.id)))
+          this.updateUser(token, e.id, { advertisers: updatedAdvertisers.map(e => e.id) })
+        })]
+    },
+    deleteManager: async function (token: Token, brand: number): Promise<void> {
+      const { data: managers } = await this.listUsers(token, { brands: [brand], roles: ['manager'] })
+      const { data: advertisers }: { data: Advertiser[] } = await this.listAdvertisers(token, { brands: [brand] })
+      await Promise.all[
+        managers.forEach((e: { id: any, advertisers: Advertiser[] }) => {
           const updatedAdvertisers = _.filter(e.advertisers, advertiser => (!advertisers.map(e => e.id).includes(advertiser.id)))
           this.updateUser(token, e.id, { advertisers: updatedAdvertisers.map(e => e.id) })
         })]
@@ -416,9 +432,10 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<result> {
-      const { name, owners, advertisers } = profile
+      const { name, owners, advertisers, manager } = profile
       // remove owner
       if (owners) await this.deleteSuperAdmin(token, id)
+      if (manager) await this.deleteSuperManager(token, id)
       // update brand
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -427,7 +444,8 @@ function strapiClientTool(url: string): ClientTool {
 
           //add owner
           if (owners && owners.length != 0) await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
-
+          // add manager
+          if (owners && owners.length != 0) await this.addBrandManager(token, manager, advertisers.map(e => e.id))
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
@@ -449,8 +467,8 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>(async (resolve, reject) => {
         const { name, brand } = profile;
 
-        if (!name && brand) {
-          resolve({ data: null, error: "Please provie name, and brand in profile" });
+        if (!name) {
+          resolve({ data: null, error: "Please provie name in profile" });
         }
 
         if (typeof (name) != 'string') {

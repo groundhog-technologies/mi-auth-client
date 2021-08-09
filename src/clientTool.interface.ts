@@ -51,6 +51,7 @@ export interface Brand {
     name: string,
     advertisers?: Advertiser[]
     owners?: BrandOwner[]
+    manager?: BrandOwner[]
 }
 
 export type BrandOwner = {
@@ -67,6 +68,7 @@ export interface updateBrand {
     name: string,
     advertisers?: number[],
     owners?: number[]
+    manager?: number[]
 }
 
 export interface Advertiser {
@@ -102,7 +104,9 @@ export interface ClientTool {
     updateUser(token: Token, id: ID, profile: updateUser): Promise<result>,
     deleteUser(token: Token, id: ID): Promise<result>,
     deleteSuperAdmin?(token: Token, brand: ID, advertisers: ID[]): void
+    deleteManager?(token: Token, brand: ID, advertisers: ID[]): void
     addBrandOwner?(token: Token, owner: ID[], advertisers: ID[]): void
+    addBrandManager?(token: Token, owner: ID[], advertisers: ID[]): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
     createRole?(token: Token, params: updateRole): Promise<result>,
