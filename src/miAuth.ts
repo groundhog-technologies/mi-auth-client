@@ -3,7 +3,6 @@ import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
 import { assignObject, isEmail, roleNames, isValidKey, setUrl, users, sortSetting, parseErrorMessage, roleNames2GUI } from './utils';
 import * as _ from 'lodash'
-import { identity, camelCase } from 'lodash';
 import { StrapiUser, StrapiRole } from './strapi.interface';
 import * as R from 'ramda'
 import db from './mock/sql'
@@ -372,8 +371,7 @@ function strapiClientTool(url: string): ClientTool {
         // create brand
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
         axios.post<Brand>('/brands', profile, config).then(async res => {
-          const { id, name, advertisers } = res.data;
-          resolve({ data: { id, name, advertisers }, error: null })
+          resolve({ data: res.data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
         })
@@ -403,11 +401,20 @@ function strapiClientTool(url: string): ClientTool {
         const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
         axios.get<Brand[]>(`/brands`, config).then(async res => {
           const data: Brand[] = []
-          const params = new URLSearchParams()
-          params.append('role.name', roleNames['superAdmin'])
-          const superAdmins: StrapiUser[] = await users(token, params)
+          const saParams = new URLSearchParams()
+          saParams.append('role.name', roleNames['superAdmin'])
+          const superAdmins: StrapiUser[] = await users(token, saParams)
+
+          const managerParams = new URLSearchParams()
+          managerParams.append('role.name', roleNames['manager'])
+          const allManagers: StrapiUser[] = await users(token, managerParams)
+
           res.data.forEach(async e => {
             let owners = superAdmins.filter(o => {
+              const ad = o.advertisers.map(v => v.brand)
+              return ad.includes(e.id)
+            })
+            let managers = allManagers.filter(o => {
               const ad = o.advertisers.map(v => v.brand)
               return ad.includes(e.id)
             })
@@ -422,7 +429,17 @@ function strapiClientTool(url: string): ClientTool {
                 }
               }) : []
 
-            const brand = { id: e.id, name: e.name, advertisers: e.advertisers, owners: owner }
+            const manager: BrandOwner[] = managers ?
+              managers.map(o => {
+                return {
+                  username: o.username,
+                  email: o.email,
+                  id: o.id,
+                  role: roleNames2GUI(o.role.name),
+                  platform: o.platforms.map(e => e.name)
+                }
+              }) : []
+            const brand = { ...e, owners: owner, manager }
             data.push(brand)
           })
           resolve({ data, error: null })
@@ -435,7 +452,7 @@ function strapiClientTool(url: string): ClientTool {
       const { name, owners, advertisers, manager } = profile
       // remove owner
       if (owners) await this.deleteSuperAdmin(token, id)
-      if (manager) await this.deleteSuperManager(token, id)
+      if (manager) await this.deleteManager(token, id)
       // update brand
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
@@ -445,7 +462,7 @@ function strapiClientTool(url: string): ClientTool {
           //add owner
           if (owners && owners.length != 0) await this.addBrandOwner(token, owners, advertisers.map(e => e.id))
           // add manager
-          if (owners && owners.length != 0) await this.addBrandManager(token, manager, advertisers.map(e => e.id))
+          if (manager && manager.length != 0) await this.addBrandManager(token, manager, advertisers.map(e => e.id))
           resolve({ data: { id, name, advertisers }, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })

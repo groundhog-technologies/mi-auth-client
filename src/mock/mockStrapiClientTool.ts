@@ -6,8 +6,6 @@ import * as R from 'ramda';
 
 let mockMe: User
 
-console.log('use mock strapi')
-
 export default function mockStrapiClientTool(): ClientTool {
     return {
         // user operations
