@@ -69,6 +69,7 @@ export interface updateBrand {
     advertisers?: number[],
     owners?: number[]
     manager?: number[]
+    disabled?: boolean
 }
 
 export interface Advertiser {
@@ -88,6 +89,7 @@ export interface updateAdvertiser {
     name: string,
     brand: ID,
     users?: number[]
+    disabled?: boolean
 }
 
 export interface result {

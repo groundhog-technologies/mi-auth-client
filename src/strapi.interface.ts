@@ -27,18 +27,21 @@ export interface StrapiBrand {
     id: ID
     name: string
     advertisers: ID[]
+    disabled: boolean
 }
 export interface StrapiUserAdvertiser {
     id: ID
     name: string
     users: StrapiUser[]
     brand: ID
+    disabled: boolean
 }
 export interface StrapiAdvertiser {
     id: ID
     name: string
     users: StrapiUser[]
     brand: StrapiBrand
+    disabled: boolean
 }
 
 export interface StrapiPlatform {

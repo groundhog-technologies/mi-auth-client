@@ -2,7 +2,6 @@ import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
 import { Token, listParams } from './clientTool.interface';
 import { StrapiUser } from './strapi.interface';
-import * as R from 'ramda';
 
 export const isEmail = function (email: string) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
