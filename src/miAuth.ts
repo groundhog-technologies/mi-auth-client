@@ -1,12 +1,14 @@
 import { ClientTool, UserPermissionLogin, UserRegisterInfo, User, ClientToolParams, Token, ID, Role, Brand, Advertiser, updateAdvertiser, updateBrand, listParams, Platform, BrandOwner, result, sortParams, updateUser, updateRole } from './clientTool.interface';
 import mockStrapiClientTool from './mock/mockStrapiClientTool';
 import axios, { AxiosRequestConfig } from 'axios';
-import { assignObject, isEmail, roleNames, isValidKey, setUrl, users, sortSetting, parseErrorMessage, roleNames2GUI } from './utils';
+import { assignObject, isEmail, roleNames, isValidKey, setUrl, users, roles, sortSetting, parseErrorMessage, roleNames2GUI } from './utils';
 import * as _ from 'lodash'
 import { StrapiUser, StrapiRole } from './strapi.interface';
 import * as R from 'ramda'
 import db from './mock/sql'
+const pjson = require('../package.json');
 
+const version = pjson.version;
 
 function strapiClientTool(url: string): ClientTool {
 
@@ -76,14 +78,14 @@ function strapiClientTool(url: string): ClientTool {
           resolve({ data: null, error: "Type of platform must be array." });
         }
 
-        const allRoles: Role[] = await this.listRoles(token);
+        const allRoles: Role[] = await roles(token);
         const allPlatforms: Platform[] = await this.listPlatforms(token);
 
         const data: any = profile;
         data.role = _.find(allRoles, e => e.name == role).id;
         data.platforms = _.map(_.filter(allPlatforms, e => { return platform.includes(e.name) }), e => e.id)
 
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.post('/auth/local/register', data, config).then(async res => {
           const { id, email, username, role, platforms = [], advertisers = [] } = res.data.user
           const brandIds = new Set();
@@ -99,6 +101,7 @@ function strapiClientTool(url: string): ClientTool {
           const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
           resolve({ data, error: null })
         }).catch(err => {
+          console.log(err)
           resolve({ data: null, error: parseErrorMessage(err) })
         })
       });
@@ -131,8 +134,8 @@ function strapiClientTool(url: string): ClientTool {
             });
             const brand = brandIds.size == 0 ? [] : await this.listBrands(jwt, { ids: Array.from(brandIds) })
             const reducedPlatform = _.map(platforms, e => e.name)
-            const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
-            const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers: reducedAdvertiser }
+            //const reducedAdvertiser = _.map(advertisers, e => { return { id: e.id, name: e.name, brand: e.brand } })
+            const data: User = { id, email, username, role: roleNames2GUI(role.name), platform: reducedPlatform, brand: brand.data, advertisers }
             resolve({ data: { jwt, user: data }, error: null })
           })
           .catch(err => {
@@ -144,7 +147,7 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>((resolve, reject) => {
 
         const config: AxiosRequestConfig = {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}`, cliVersion: version }
         }
         axios.get('/users/me', config)
           .then(async res => {
@@ -206,7 +209,7 @@ function strapiClientTool(url: string): ClientTool {
           if (sortFilter.length) params.append('_sort', sortFilter.join(','))
         }
 
-        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.get('/users', config).then(async res => {
           const data: User[] = []
           const allBrands = await this.listBrands(token)
@@ -250,7 +253,7 @@ function strapiClientTool(url: string): ClientTool {
         const data: any = profile;
 
         if (role) {
-          const allRoles: Role[] = await this.listRoles(token);
+          const allRoles: Role[] = await roles(token);
           data.role = _.find(allRoles, e => e.name == role).id;
         }
 
@@ -259,7 +262,7 @@ function strapiClientTool(url: string): ClientTool {
           data.platforms = _.map(_.filter(allPlatforms, e => { return platform.includes(e.name) }), e => e.id)
         }
 
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.put(`/users/${id}`, data, config).then(async res => {
           const { id, email, username, role, platforms, advertisers } = res.data
           const brandIds = new Set();
@@ -280,7 +283,7 @@ function strapiClientTool(url: string): ClientTool {
     },
     deleteUser: async function (token: Token, id: ID): Promise<result> {
       return new Promise<result>((resolve, reject) => {
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/users/${id}`, config).then(res => {
           resolve({ data: true, error: null })
         }).catch(err => {
@@ -292,7 +295,7 @@ function strapiClientTool(url: string): ClientTool {
     listRoles: async function (token: Token): Promise<Role[]> {
       return new Promise<Role[]>((resolve, reject) => {
         const config: AxiosRequestConfig = {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}`, cliVersion: version }
         };
         axios.get<{ roles: Role[] }>('/users-permissions/roles', config).then(res => {
           resolve(res.data.roles.map((e: StrapiRole) => {
@@ -320,7 +323,7 @@ function strapiClientTool(url: string): ClientTool {
     updateRole: async function (token: Token, params: updateRole): Promise<result> {
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}`, cliVersion: version }
         };
         axios.put<{ role: Role[] }>(`/users-permissions/roles/${params.id}`, R.omit(['id'], params), config).then(res => {
           resolve({ data: res.data.role, error: null })
@@ -333,7 +336,7 @@ function strapiClientTool(url: string): ClientTool {
     deleteRole: async function (token: Token, id: ID): Promise<result> {
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}`, cliVersion: version }
         };
         axios.delete<{ role: Role[] }>(`/users-permissions/roles/${id}`, config).then(res => {
           resolve({ data: res.data.role, error: null })
@@ -347,7 +350,7 @@ function strapiClientTool(url: string): ClientTool {
     listPlatforms: async function (token: Token): Promise<Platform[]> {
       return new Promise<Platform[]>((resolve, reject) => {
         const config: AxiosRequestConfig = {
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}`, cliVersion: version }
         };
         axios.get<Platform[]>('/platforms', config).then(res => {
           resolve(res.data)
@@ -369,7 +372,7 @@ function strapiClientTool(url: string): ClientTool {
           resolve({ data: null, error: "Invalid type of name" });
         }
         // create brand
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.post<Brand>('/brands', profile, config).then(async res => {
           resolve({ data: res.data, error: null })
         }).catch(err => {
@@ -377,15 +380,19 @@ function strapiClientTool(url: string): ClientTool {
         })
       });
     },
-    listBrands: async function (token: Token, select: Pick<listParams, "ids"> = {}, options: sortParams): Promise<result> {
+    listBrands: async function (token: Token, select: Pick<listParams, "ids" | "disabled"> = {}, options: sortParams): Promise<result> {
       return new Promise<result>((resolve, reject) => {
-        const { ids } = select
+        const { ids, disabled } = select
 
         let params = new URLSearchParams();
         if (ids) {
           ids.forEach(e => {
             if (e) params.append('id_in', e.toString())
           })
+        }
+
+        if (disabled !== undefined) {
+          params.append('disabled_eq', disabled.toString())
         }
 
         if (options) {
@@ -398,7 +405,7 @@ function strapiClientTool(url: string): ClientTool {
           if (sortFilter.length) params.append('_sort', sortFilter.join(','))
         }
 
-        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.get<Brand[]>(`/brands`, config).then(async res => {
           const data: Brand[] = []
           const saParams = new URLSearchParams()
@@ -449,14 +456,14 @@ function strapiClientTool(url: string): ClientTool {
       });
     },
     updateBrand: async function (token: Token, id: ID, profile: updateBrand): Promise<result> {
-      const { name, owners, advertisers, manager } = profile
+      const { name, owners, advertisers, manager, disabled } = profile
       // remove owner
       if (owners) await this.deleteSuperAdmin(token, id)
       if (manager) await this.deleteManager(token, id)
       // update brand
       return new Promise<result>((resolve, reject) => {
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
-        axios.put<Brand>(`/brands/${id}`, { name, advertisers }, config).then(async res => {
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
+        axios.put<Brand>(`/brands/${id}`, { name, advertisers, disabled }, config).then(async res => {
           const { id, name, advertisers } = res.data;
 
           //add owner
@@ -471,7 +478,7 @@ function strapiClientTool(url: string): ClientTool {
     },
     deleteBrand: async function (token: Token, id: ID): Promise<result> {
       return new Promise<result>((resolve, reject) => {
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/brands/${id}`, config).then(res => {
           resolve({ data: true, error: null })
         }).catch(err => {
@@ -492,9 +499,9 @@ function strapiClientTool(url: string): ClientTool {
           resolve({ data: null, error: "Invalid type of name" });
         }
 
-        const roles = await this.listRoles(token);
+        const allRoles = await roles(token);
 
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.post('/advertisers', profile, config).then(res => {
           let { data } = res
           data = {
@@ -503,7 +510,7 @@ function strapiClientTool(url: string): ClientTool {
             brand: data.brand,
             users: data.users.map((e: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = e
-              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+              return { id, email, username, role: allRoles.find((i: { id: any; }) => role == i.id).name }
             })
           }
           resolve({ data, error: null })
@@ -512,9 +519,9 @@ function strapiClientTool(url: string): ClientTool {
         })
       });
     },
-    listAdvertisers: async function (token: Token, select: Pick<listParams, "ids" | "brands">, options: sortParams): Promise<result> {
+    listAdvertisers: async function (token: Token, select: Pick<listParams, "ids" | "brands" | "disabled">, options: sortParams): Promise<result> {
       return new Promise<result>(async (resolve, reject) => {
-        const { ids, brands } = select
+        const { ids, brands, disabled } = select
 
         let params = new URLSearchParams();
         if (ids) {
@@ -528,6 +535,10 @@ function strapiClientTool(url: string): ClientTool {
           })
         }
 
+        if (disabled !== undefined) {
+          params.append('disabled_eq', disabled.toString())
+        }
+
         if (options) {
           const { limit = -1, sort = {} } = options
           let sortFilter: string[] = []
@@ -538,18 +549,16 @@ function strapiClientTool(url: string): ClientTool {
           if (sortFilter.length) params.append('_sort', sortFilter.join(','))
         }
 
-        const roles = await this.listRoles(token);
-        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
+        const allRoles = await roles(token);
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.get('advertisers', config).then(res => {
           const data: Advertiser[] = []
           res.data.forEach((e: { id: any; name: any; brand: any; users: any; }) => {
             data.push({
-              id: e.id,
-              name: e.name,
-              brand: e.brand,
+              ...e,
               users: e.users.map((user: { id: any; email: any; username: any; role: any; }) => {
                 let { id, email, username, role } = user
-                return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+                return { id, email, username, role: allRoles.find((i: { id: any; }) => role == i.id).name }
               })
             })
           })
@@ -561,17 +570,15 @@ function strapiClientTool(url: string): ClientTool {
     },
     updateAdvertiser: async function (token: Token, id: ID, profile: updateAdvertiser): Promise<result> {
       return new Promise<result>(async (resolve, reject) => {
-        const roles = await this.listRoles(token);
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const allRoles = await roles(token);
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.put(`/advertisers/${id}`, profile, config).then(res => {
           let { data } = res
           data = {
-            id: data.id,
-            name: data.name,
-            brand: data.brand,
+            ...data,
             users: data.users.map((user: { id: any; email: any; username: any; role: any; }) => {
               let { id, email, username, role } = user
-              return { id, email, username, role: roles.find((i: { id: any; }) => role == i.id).name }
+              return { id, email, username, role: allRoles.find((i: { id: any; }) => role == i.id).name }
             })
           }
           resolve({ data, error: null })
@@ -582,7 +589,7 @@ function strapiClientTool(url: string): ClientTool {
     },
     deleteAdvertiser: async function (token: Token, id: ID): Promise<result> {
       return new Promise<result>((resolve, reject) => {
-        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/advertisers/${id}`, config).then(res => {
           resolve({ data: true, error: null })
         }).catch(err => {

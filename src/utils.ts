@@ -1,7 +1,11 @@
 import * as _ from 'lodash';
 import axios, { AxiosRequestConfig } from 'axios';
-import { Token, listParams } from './clientTool.interface';
-import { StrapiUser } from './strapi.interface';
+import { Token, listParams, Role } from './clientTool.interface';
+import { StrapiRole, StrapiUser } from './strapi.interface';
+const pjson = require('../package.json');
+
+const version = pjson.version;
+
 
 export const isEmail = function (email: string) {
     const re = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -52,9 +56,23 @@ export const setUrl = (url: string) => {
     return serviceUrl
 }
 
+export const roles = async (token: Token) => {
+    return new Promise<StrapiRole[]>((resolve, reject) => {
+        const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
+        axios.get<{ roles: Role[] }>('/users-permissions/roles', config).then(res => {
+            resolve(res.data.roles.map((e: StrapiRole) => {
+                return { ...e, name: roleNames2GUI(e.name) }
+            }))
+        }).catch(err => {
+            console.log(parseErrorMessage(err))
+            reject(err)
+        })
+    })
+}
+
 export const users = async (token: Token, params: URLSearchParams) => {
     return new Promise<StrapiUser[]>((resolve, reject) => {
-        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}` } };
+        const config: AxiosRequestConfig = { params, headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.get<StrapiUser[]>('/users', config).then(res => {
             resolve(res.data);
         }).catch(e => {
@@ -64,7 +82,7 @@ export const users = async (token: Token, params: URLSearchParams) => {
 }
 
 export const brands = (token: Token, params: URLSearchParams) => {
-    const config = { params, headers: { Authorization: `Bearer ${token}` } };
+    const config = { params, headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
     axios('/brands', config).then(res => {
         return res.data
     }).catch(e => console.log(e))
@@ -75,7 +93,7 @@ export const parseErrorMessage = (errorMessage: any) => {
     let message = _.get(errorMessage, ['response', 'data', 'message'])
     if (typeof (message) == 'string') return message
 
-    message = _.get(message, ['message', 0, 'messages', 0])
+    message = _.get(message, [0, 'messages', 0, 'message'])
     return message
 
 }

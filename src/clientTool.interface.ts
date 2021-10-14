@@ -86,8 +86,8 @@ export interface Platform {
 
 export interface updateAdvertiser {
     id?: ID,
-    name: string,
-    brand: ID,
+    name?: string,
+    brand?: ID,
     users?: number[]
     disabled?: boolean
 }
@@ -117,12 +117,12 @@ export interface ClientTool {
     listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
     createBrand(token: Token, profile: updateBrand): Promise<result>,
-    listBrands(token: Token, params: Pick<listParams, "ids">, options?: sortParams): Promise<result>,
+    listBrands(token: Token, params: Pick<listParams, "ids" | "disabled">, options?: sortParams): Promise<result>,
     updateBrand(token: Token, id: ID, profile: updateBrand): Promise<result>,
     deleteBrand(token: Token, id: ID): Promise<result>,
     // advertiser operations
     createAdvertiser(token: Token, profile: updateAdvertiser): Promise<result>,
-    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">, options?: sortParams): Promise<result>,
+    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands" | "disabled">, options?: sortParams): Promise<result>,
     updateAdvertiser(token: Token, id: ID, profile: updateAdvertiser): Promise<result>,
     deleteAdvertiser(token: Token, id: ID): Promise<result>,
 }
@@ -137,6 +137,7 @@ export interface listParams {
     brands?: ID[],
     advertisers?: ID[],
     roles?: string[]
+    disabled?: boolean
 }
 
 type sortKey = 'created_at' | 'updated_at' | 'id' | 'name' | 'username'
