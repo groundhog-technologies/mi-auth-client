@@ -425,7 +425,7 @@ function strapiClientTool(url: string): ClientTool {
               const ad = o.advertisers.map(v => v.brand)
               return ad.includes(e.id)
             })
-            const owner: BrandOwner[] = owners ?
+            const owner: BrandOwner[] = owners.length ?
               owners.map(o => {
                 return {
                   username: o.username,
@@ -436,7 +436,7 @@ function strapiClientTool(url: string): ClientTool {
                 }
               }) : []
 
-            const manager: BrandOwner[] = managers ?
+            const manager: BrandOwner[] = managers.length ?
               managers.map(o => {
                 return {
                   username: o.username,
