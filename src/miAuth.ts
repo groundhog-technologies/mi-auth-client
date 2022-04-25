@@ -285,7 +285,7 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/users/${id}`, config).then(res => {
-          resolve({ data: res, error: null })
+          resolve({ data: res.data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
         })
@@ -480,7 +480,7 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/brands/${id}`, config).then(res => {
-          resolve({ data: res, error: null })
+          resolve({ data: res.data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
         })
@@ -591,7 +591,7 @@ function strapiClientTool(url: string): ClientTool {
       return new Promise<result>((resolve, reject) => {
         const config: AxiosRequestConfig = { headers: { Authorization: `Bearer ${token}`, cliVersion: version } };
         axios.delete(`/advertisers/${id}`, config).then(res => {
-          resolve({ data: res, error: null })
+          resolve({ data: res.data, error: null })
         }).catch(err => {
           resolve({ data: null, error: parseErrorMessage(err) })
         })
