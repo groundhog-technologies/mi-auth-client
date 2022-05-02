@@ -10,6 +10,14 @@ export interface UserRegisterInfo {
     advertisers?: ID[],
 }
 
+export interface updateUser {
+    username: string,
+    role: string,
+    platform: string[],
+    password?: string,
+    brand?: number[],
+    advertisers?: number[],
+}
 export interface User {
     id?: ID,
     username: string,
@@ -17,7 +25,7 @@ export interface User {
     role: string,
     platform: string[],
     password?: string,
-    brand: Brand[],
+    brand?: Brand[],
     advertisers?: Advertiser[],
 }
 
@@ -26,9 +34,15 @@ export interface UserPermissionLogin {
     user: User
 }
 
+export interface updateRole {
+    id: ID,
+    name: string,
+    permissions: string[]
+}
 export interface Role {
     id: ID,
     name: string,
+    permissions?: Object[],
     nb_users?: number
 }
 
@@ -36,12 +50,26 @@ export interface Brand {
     id?: ID,
     name: string,
     advertisers?: Advertiser[]
+    owners?: BrandOwner[]
+    manager?: BrandOwner[]
 }
+
+export type BrandOwner = {
+    id?: ID,
+    username?: string,
+    email?: string,
+    role?: string,
+    platform?: string[]
+}
+//Partial<Pick<User, "id" | "username" | "email" | "role" | "platform">> | []
 
 export interface updateBrand {
     id?: ID,
     name: string,
-    advertisers?: number[]
+    advertisers?: number[],
+    owners?: number[]
+    manager?: number[]
+    disabled?: boolean
 }
 
 export interface Advertiser {
@@ -58,33 +86,45 @@ export interface Platform {
 
 export interface updateAdvertiser {
     id?: ID,
-    name: string,
-    brand: ID,
+    name?: string,
+    brand?: ID,
     users?: number[]
+    disabled?: boolean
+}
+
+export interface result {
+    data: any,
+    error: any
 }
 
 export interface ClientTool {
     // user operations
-    login(name: string, password: string): Promise<UserPermissionLogin>,
-    getMe(token: Token): Promise<User>
-    createUser(token: Token, profile: UserRegisterInfo): Promise<User>,
-    listUsers(token: Token, params: listParams): Promise<User[]>,
-    updateUser(token: Token, id: ID, profile: User): Promise<User>,
-    deleteUser(token: Token, id: ID): Promise<boolean>,
+    login(name: string, password: string): Promise<result>,
+    getMe(token: Token): Promise<result>
+    createUser(token: Token, profile: UserRegisterInfo): Promise<result>,
+    listUsers(token: Token, params: listParams, options?: sortParams): Promise<result>,
+    updateUser(token: Token, id: ID, profile: updateUser): Promise<result>,
+    deleteUser(token: Token, id: ID): Promise<result>,
+    deleteSuperAdmin?(token: Token, brand: ID, advertisers: ID[]): void
+    deleteManager?(token: Token, brand: ID, advertisers: ID[]): void
+    addBrandOwner?(token: Token, owner: ID[], advertisers: ID[]): void
+    addBrandManager?(token: Token, owner: ID[], advertisers: ID[]): void
     // role operations
     listRoles(token: Token): Promise<Role[]>,
+    createRole?(token: Token, params: updateRole): Promise<result>,
+    updateRole?(token: Token, params: updateRole): Promise<result>,
+    deleteRole?(token: Token, id: ID): Promise<result>
     listPlatforms?(token: Token): Promise<Platform[]>,
     // brand operations
-    createBrand(token: Token, profile: updateBrand): Promise<Brand>,
-    listBrands(token: Token, params: Pick<listParams, "ids">): Promise<Brand[]>,
-    updateBrand(token: Token, id: ID, profile: Brand): Promise<Brand>,
-    deleteBrand(token: Token, id: ID): Promise<boolean>,
+    createBrand(token: Token, profile: updateBrand): Promise<result>,
+    listBrands(token: Token, params: Pick<listParams, "ids" | "disabled">, options?: sortParams): Promise<result>,
+    updateBrand(token: Token, id: ID, profile: updateBrand): Promise<result>,
+    deleteBrand(token: Token, id: ID): Promise<result>,
     // advertiser operations
-    createAdvertiser(token: Token, profile: updateAdvertiser): Promise<Advertiser>,
-    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands">): Promise<Advertiser[]>,
-    updateAdvertiser(token: Token, id: ID, profile: Advertiser): Promise<Advertiser>,
-    deleteAdvertiser(token: Token, id: ID): Promise<boolean>,
-
+    createAdvertiser(token: Token, profile: updateAdvertiser): Promise<result>,
+    listAdvertisers(token: Token, params: Pick<listParams, "ids" | "brands" | "disabled">, options?: sortParams): Promise<result>,
+    updateAdvertiser(token: Token, id: ID, profile: updateAdvertiser): Promise<result>,
+    deleteAdvertiser(token: Token, id: ID): Promise<result>,
 }
 
 export interface ClientToolParams {
@@ -96,4 +136,14 @@ export interface listParams {
     ids?: ID[],
     brands?: ID[],
     advertisers?: ID[],
+    roles?: string[]
+    disabled?: boolean
+}
+
+type sortKey = 'created_at' | 'updated_at' | 'id' | 'name' | 'username'
+type Sort = Map<sortKey, 1 | -1>
+
+export interface sortParams {
+    sort?: Sort,
+    limit?: number
 }

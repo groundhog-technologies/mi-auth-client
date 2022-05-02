@@ -26,13 +26,13 @@ const miAuth = createClientTool({ mock: true });
 ```
 Performing a login request
 ```+=javascript
-const { jwt } = await miAuth.login('email@ghtinc.com', 'password')
+let { data:{jwt}, error } = await miAuth.login('email@ghtinc.com', 'password')
 ```
 Performing CRUD user request
 ```+=javascript
-miAuth.getMe(jwt).then(user => console.log(user));
+miAuth.getMe(jwt).then({data: user} => console.log(user));
 
-miAuth.deleteUser(jwt, id = 43).then(user => console.log(user));
+miAuth.deleteUser(jwt, id = 43).then({data: user} => console.log(user));
 
 miAuth.createUser(jwt, {
         username: 'test',
@@ -41,31 +41,66 @@ miAuth.createUser(jwt, {
         role: "User",
         platform: ['DMP'],
         advertisers: [7],
-    }).then(user => console.log(user));
+    }).then({data: user} => console.log(user));
 
-miAuth.updateUser(jwt, id = 44, { platform: ['DSP] }).then(user => console.log(user))
+miAuth.updateUser(jwt, id = 44, { platform: ['DSP] }).then({data: user} => console.log(user))
 
-miAuth.listUsers(jwt, {ids:[], brands:[], advertisers:[]}).then(user => console.log(user));
+miAuth.listUsers(jwt, {ids:[], brands:[], advertisers:[]}, {sort:{'name': -1}, limit: 10}).then({data: user} => console.log(user));
 ```
 
 Performing CRUD advertiser request
 ```+=javascript
-miAuth.createAdvertiser(jwt, { name: 'test', brand: 4, users:[1, 2] }).then(advertiser => console.log(advertiser))
+miAuth.createAdvertiser(jwt, { name: 'test', brand: 4, users:[1, 2] }).then({data: advertiser} => console.log(advertiser))
 
-miAuth.updateAdvertiser(jwt, id = 8, { name: 'update' }).then(advertiser => console.log(advertiser))
+miAuth.updateAdvertiser(jwt, id = 8, { name: 'update' }).then({data: advertiser} => console.log(advertiser))
 
-miAuth.deleteAdvertiser(jwt, id = 7).then(advertiser => console.log(advertiser));
+miAuth.deleteAdvertiser(jwt, id = 7).then({data: advertiser} => console.log(advertiser));
 
-miAuth.listAdvertisers(jwt, {ids:[7], brands:[5]).then(advertisers => console.log(advertisers));
+miAuth.listAdvertisers(jwt, {ids:[7], brands:[5]},{sort:{'updated_at':1, limit:10}}).then({data: advertisers} => console.log(advertisers));
 ```
 
 Performing CRUD brand request
 ```+=javascript
-miAuth.createBrand(jwt, { name: 'test', advertisers: [10] }).then(brand => console.log(brand))
+miAuth.createBrand(jwt, { name: 'test', advertisers: [10] }).then({data:brand} => console.log(brand))
 
-miAuth.updateBrand(jwt, id = 5, { name: 'update' }).then(brand => console.log(brand))
+miAuth.updateBrand(jwt, id = 5, { name: 'update' }).then({data: brand} => console.log(brand))
 
-miAuth.deleteBrand(jwt, id = 4).then(brand => console.log(brand));
+miAuth.deleteBrand(jwt, id = 4).then({data: brand} => console.log(brand));
 
-miAuth.listBrands(jwt,{ids:[5]}).then(brands => console.log(brands));
+miAuth.listBrands(jwt,{ids:[5]}, {sort:{'created_at': -1}, limit:100}).then({data: brands} => console.log(brands));
+```
+
+Options config for listBrands, listAdvertiser, and listUser
+```+=javascript
+type sortKey = 'created_at' | 'updated_at' | 'id' | 'name' | 'username'
+type Sort = Map<sortKey, 1 | -1>
+
+export interface options {
+    sort?: Sort,
+    limit?: number
+}
+```
+
+Filter config for listUsers
+```+=js
+{
+    ids?: ID[],
+    brands?: ID[],
+    advertisers?: ID[],
+    roles?: string[]
+}
+```
+
+Filter config for listAdvertiser
+```+=js
+{
+    ids?: ID[],
+    brands?: ID[],
+}
+```
+Filter config for listBrands
+```+=js
+{
+    ids?: ID[],
+}
 ```
